@@ -18,6 +18,7 @@ from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import inch
 from reportlab.lib.styles import getSampleStyleSheet
 
+
 # =====================================================
 # 2️⃣ CONFIGURAÇÃO
 # =====================================================
@@ -27,6 +28,7 @@ st.set_page_config(
     page_icon="🥋",
     layout="centered"
 )
+
 
 # =====================================================
 # 3️⃣ CONEXÃO GOOGLE
@@ -39,6 +41,7 @@ def connect_google():
     )
     return gc.open("bjj_app_database")
 
+
 # =====================================================
 # 4️⃣ FUNÇÕES BANCO
 # =====================================================
@@ -47,39 +50,56 @@ def get_athletes():
     sheet = connect_google()
     return pd.DataFrame(sheet.worksheet("athletes").get_all_records())
 
-def add_athlete(nome, sobrenome, faixa, tempo):
-    ws = connect_google().worksheet("athletes")
-    athlete_id = len(ws.get_all_records()) + 1
-
-    ws.append_row([
-        athlete_id,
-        nome,
-        sobrenome,
-        faixa,
-        tempo,
-        datetime.now().strftime("%Y-%m-%d")
-    ])
-
-def save_questionnaire(data_row):
-    ws = connect_google().worksheet("respostas_questionario")
-    ws.append_row(data_row)
 
 def get_scores_df():
     return pd.DataFrame(
         connect_google().worksheet("respostas_questionario").get_all_records()
     )
 
+
+def add_athlete(nome, sobrenome, faixa, tempo):
+    ws = connect_google().worksheet("athletes")
+    athlete_id = len(ws.get_all_records()) + 1
+
+    ws.append_row([
+        int(athlete_id),
+        str(nome),
+        str(sobrenome),
+        str(faixa),
+        int(tempo),
+        datetime.now().strftime("%Y-%m-%d")
+    ])
+
+
+def save_questionnaire(data_row):
+    ws = connect_google().worksheet("respostas_questionario")
+
+    # 🔥 Conversão explícita para tipos nativos
+    clean_row = []
+    for v in data_row:
+        if isinstance(v, (np.integer,)):
+            clean_row.append(int(v))
+        elif isinstance(v, (np.floating,)):
+            clean_row.append(float(v))
+        else:
+            clean_row.append(v)
+
+    ws.append_row(clean_row)
+
+
 # =====================================================
 # 5️⃣ FUNÇÕES ANALÍTICAS
 # =====================================================
 
 def calcular_scores(respostas):
-    forca = np.mean(respostas[0:5])
-    tecnica = np.mean(respostas[5:10])
-    guarda = np.mean(respostas[10:15])
-    passagem = np.mean(respostas[15:20])
-    score = np.mean([forca, tecnica, guarda, passagem])
-    return forca, tecnica, guarda, passagem, score
+    forca = float(np.mean(respostas[0:5]))
+    tecnica = float(np.mean(respostas[5:10]))
+    guarda = float(np.mean(respostas[10:15]))
+    passagem = float(np.mean(respostas[15:20]))
+    score_global = float(np.mean([forca, tecnica, guarda, passagem]))
+
+    return forca, tecnica, guarda, passagem, score_global
+
 
 def estimar_faixa(score, tempo):
     if score >= 85 and tempo >= 60:
@@ -90,18 +110,20 @@ def estimar_faixa(score, tempo):
         return "Roxa"
     elif score >= 40 and tempo >= 12:
         return "Azul"
-    return "Branca"
+    else:
+        return "Branca"
+
 
 # =====================================================
 # 6️⃣ FUNÇÕES GRÁFICAS
 # =====================================================
 
-def plot_pca(atual_scores):
+def plot_pca(forca, tecnica, guarda, passagem):
 
     df = get_scores_df()
     if len(df) < 2:
-        st.warning("PCA requer mínimo 2 avaliações.")
-        return None
+        st.warning("PCA requer mínimo 2 avaliações registradas.")
+        return
 
     matriz = df[[
         "forca_score",
@@ -113,26 +135,26 @@ def plot_pca(atual_scores):
     pca = PCA(n_components=2)
     componentes = pca.fit_transform(matriz)
 
-    df["PC1"] = componentes[:,0]
-    df["PC2"] = componentes[:,1]
+    df["PC1"] = componentes[:, 0]
+    df["PC2"] = componentes[:, 1]
 
-    novo = pca.transform([atual_scores])
+    novo = pca.transform([[forca, tecnica, guarda, passagem]])
 
     fig, ax = plt.subplots()
     sns.scatterplot(data=df, x="PC1", y="PC2", ax=ax)
     ax.scatter(novo[0][0], novo[0][1], s=200)
-    ax.set_title("Mapa PCA")
+    ax.set_title("Mapa PCA - Perfil Técnico")
 
     st.pyplot(fig)
-    return fig
+
 
 def plot_radar(forca, tecnica, guarda, passagem):
 
-    categorias = ["Força","Técnica","Guarda","Passagem"]
+    categorias = ["Força", "Técnica", "Guarda", "Passagem"]
     valores = [forca, tecnica, guarda, passagem]
     valores += valores[:1]
 
-    angles = np.linspace(0, 2*np.pi, len(categorias), endpoint=False).tolist()
+    angles = np.linspace(0, 2 * np.pi, len(categorias), endpoint=False).tolist()
     angles += angles[:1]
 
     fig, ax = plt.subplots(subplot_kw=dict(polar=True))
@@ -141,16 +163,17 @@ def plot_radar(forca, tecnica, guarda, passagem):
 
     ax.set_xticks(angles[:-1])
     ax.set_xticklabels(categorias)
+    ax.set_title("Perfil Técnico Radar")
 
     st.pyplot(fig)
-    return fig
+
 
 def plot_correlation():
 
     df = get_scores_df()
     if len(df) < 2:
-        st.warning("Correlação requer histórico.")
-        return None
+        st.warning("Correlação requer histórico mínimo.")
+        return
 
     matriz = df[[
         "forca_score",
@@ -163,10 +186,10 @@ def plot_correlation():
 
     fig, ax = plt.subplots()
     sns.heatmap(corr, annot=True, cmap="coolwarm", ax=ax)
-    ax.set_title("Correlação")
+    ax.set_title("Matriz de Correlação")
 
     st.pyplot(fig)
-    return fig
+
 
 # =====================================================
 # 7️⃣ PDF
@@ -188,23 +211,9 @@ def gerar_pdf(nome, score, faixa):
     doc.build(elements)
     return file_path
 
-# =====================================================
-# 8️⃣ FUNDO
-# =====================================================
-
-def set_background(img):
-    if os.path.exists(img):
-        with open(img, "rb") as f:
-            encoded = base64.b64encode(f.read()).decode()
-        st.markdown(
-            f"<style>.stApp {{background-image:url(data:image/jpg;base64,{encoded});background-size:cover;}}</style>",
-            unsafe_allow_html=True
-        )
-
-set_background("kimono.jpg")
 
 # =====================================================
-# 9️⃣ MENU
+# 8️⃣ MENU
 # =====================================================
 
 if "menu" not in st.session_state:
@@ -213,18 +222,19 @@ if "menu" not in st.session_state:
 menu = st.sidebar.selectbox(
     "Menu",
     ["Cadastro", "Avaliação"],
-    index=["Cadastro","Avaliação"].index(st.session_state.menu)
+    index=["Cadastro", "Avaliação"].index(st.session_state.menu)
 )
 
+
 # =====================================================
-# 🔟 CADASTRO
+# 9️⃣ CADASTRO
 # =====================================================
 
 if menu == "Cadastro":
 
     st.title("Cadastro de Atleta")
 
-    with st.form("cad"):
+    with st.form("cadastro"):
         nome = st.text_input("Nome")
         sobrenome = st.text_input("Sobrenome")
         faixa = st.selectbox("Faixa", ["Branca","Azul","Roxa","Marrom","Preta"])
@@ -237,8 +247,9 @@ if menu == "Cadastro":
                 st.session_state.menu = "Avaliação"
                 st.rerun()
 
+
 # =====================================================
-# 1️⃣1️⃣ AVALIAÇÃO
+# 🔟 AVALIAÇÃO
 # =====================================================
 
 if menu == "Avaliação":
@@ -258,13 +269,39 @@ if menu == "Avaliação":
     atleta = df[(df["nome"] + " " + df["sobrenome"]) == atleta_nome].iloc[0]
     tempo = int(atleta["tempo_treino_meses"])
 
-    perguntas = ["Pergunta "+str(i) for i in range(1,21)]
+    perguntas = [
+        # Força
+        "Consigo manter pressão constante por 5 minutos.",
+        "Meu jogo depende bastante de força física.",
+        "Consigo finalizar apenas controlando posição.",
+        "Tenho facilidade em estabilizar montada ou 100kg.",
+        "Meu jogo melhora contra atletas menores.",
+        # Técnica
+        "Aplico golpes com mínimo gasto de energia.",
+        "Tenho variações técnicas para uma posição.",
+        "Corrijo detalhes técnicos com facilidade.",
+        "Finalizo mais por técnica do que explosão.",
+        "Meu timing é diferencial.",
+        # Guarda
+        "Prefiro puxar guarda.",
+        "Tenho múltiplas guardas ativas.",
+        "Raspo atletas da mesma faixa com frequência.",
+        "Me sinto confortável por baixo.",
+        "Finalizo da guarda com consistência.",
+        # Passagem
+        "Prefiro iniciar passando guarda.",
+        "Passo guarda sem explodir.",
+        "Uso pressão como estratégia.",
+        "Tenho controle forte em joelho na barriga.",
+        "Finalizo após passar guarda."
+    ]
 
     respostas = []
+
     with st.form("avaliacao"):
         for p in perguntas:
-            respostas.append(st.slider(p,1,5,3))
-        submitted = st.form_submit_button("Finalizar")
+            respostas.append(int(st.slider(p, 1, 5, 3)))
+        submitted = st.form_submit_button("Finalizar Avaliação")
 
     if submitted:
 
@@ -276,23 +313,22 @@ if menu == "Avaliação":
         st.write("Faixa Estimada:", faixa_estimada)
 
         save_questionnaire([
-            len(get_scores_df())+1,
-            atleta["athlete_id"],
+            int(len(get_scores_df()) + 1),
+            int(atleta["athlete_id"]),
             *respostas,
-            round(forca,2),
-            round(tecnica,2),
-            round(guarda,2),
-            round(passagem,2),
-            round(score,2),
+            float(forca),
+            float(tecnica),
+            float(guarda),
+            float(passagem),
+            float(score),
             faixa_estimada,
             datetime.now().strftime("%Y-%m-%d")
         ])
 
-        # Gráficos
-        plot_pca([forca, tecnica, guarda, passagem])
+        plot_pca(forca, tecnica, guarda, passagem)
         plot_radar(forca, tecnica, guarda, passagem)
         plot_correlation()
 
         pdf = gerar_pdf(atleta_nome, score, faixa_estimada)
-        with open(pdf,"rb") as f:
+        with open(pdf, "rb") as f:
             st.download_button("Baixar PDF", f, "Relatorio_BJJ.pdf")
