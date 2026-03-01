@@ -8,7 +8,7 @@ import base64
 import os
 
 # =====================================================
-# CONFIGURAÇÃO DA PÁGINA
+# CONFIG
 # =====================================================
 
 st.set_page_config(
@@ -18,22 +18,18 @@ st.set_page_config(
 )
 
 # =====================================================
-# CONEXÃO GOOGLE SHEETS (Cloud Ready)
+# CONEXÃO GOOGLE
 # =====================================================
 
 @st.cache_resource
 def connect_google_sheets():
-    try:
-        gc = gspread.service_account_from_dict(
-            st.secrets["gcp_service_account"]
-        )
-        return gc.open("bjj_app_database")
-    except Exception:
-        st.error("Erro ao conectar com Google Sheets.")
-        st.stop()
+    gc = gspread.service_account_from_dict(
+        st.secrets["gcp_service_account"]
+    )
+    return gc.open("bjj_app_database")
 
 # =====================================================
-# FUNÇÕES BANCO
+# BANCO
 # =====================================================
 
 def get_athletes():
@@ -42,11 +38,11 @@ def get_athletes():
 
 def add_athlete(nome, sobrenome, faixa, tempo):
     sheet = connect_google_sheets()
-    worksheet = sheet.worksheet("athletes")
-    records = worksheet.get_all_records()
+    ws = sheet.worksheet("athletes")
+    records = ws.get_all_records()
     athlete_id = len(records) + 1
 
-    worksheet.append_row([
+    ws.append_row([
         athlete_id,
         nome,
         sobrenome,
@@ -56,37 +52,12 @@ def add_athlete(nome, sobrenome, faixa, tempo):
     ])
 
 def save_questionnaire(data_row):
-   # =====================================================
-# PCA CORRIGIDO (USANDO HISTÓRICO)
-# =====================================================
-
-sheet = connect_google_sheets()
-df_scores = pd.DataFrame(
-    sheet.worksheet("respostas_questionario").get_all_records()
-)
-
-# Se existir histórico suficiente
-if len(df_scores) >= 2:
-
-    matriz = df_scores[[
-        "forca_score",
-        "tecnica_score",
-        "guarda_score",
-        "passagem_score"
-    ]].values
-
-    pca = PCA(n_components=2)
-    pca.fit(matriz)
-
-    # Projetar atleta atual
-    novo_atleta = np.array([[forca, tecnica, guarda, passagem]])
-    componentes = pca.transform(novo_atleta)
-
-else:
-    componentes = None
+    sheet = connect_google_sheets()
+    ws = sheet.worksheet("respostas_questionario")
+    ws.append_row(data_row)
 
 # =====================================================
-# FUNÇÕES ANALÍTICAS
+# ANALÍTICA
 # =====================================================
 
 def calcular_scores(respostas):
@@ -97,20 +68,42 @@ def calcular_scores(respostas):
     score_global = np.mean([forca, tecnica, guarda, passagem])
     return forca, tecnica, guarda, passagem, score_global
 
-def estimar_faixa(score_global, tempo_meses):
-    if score_global >= 85 and tempo_meses >= 60:
+def estimar_faixa(score, tempo):
+    if score >= 85 and tempo >= 60:
         return "Preta"
-    elif score_global >= 70 and tempo_meses >= 48:
+    elif score >= 70 and tempo >= 48:
         return "Marrom"
-    elif score_global >= 55 and tempo_meses >= 36:
+    elif score >= 55 and tempo >= 36:
         return "Roxa"
-    elif score_global >= 40 and tempo_meses >= 12:
+    elif score >= 40 and tempo >= 12:
         return "Azul"
     else:
         return "Branca"
 
+def calcular_pca_atual(forca, tecnica, guarda, passagem):
+    sheet = connect_google_sheets()
+    df = pd.DataFrame(
+        sheet.worksheet("respostas_questionario").get_all_records()
+    )
+
+    if len(df) < 2:
+        return None
+
+    matriz = df[[
+        "forca_score",
+        "tecnica_score",
+        "guarda_score",
+        "passagem_score"
+    ]].astype(float).values
+
+    pca = PCA(n_components=2)
+    pca.fit(matriz)
+
+    novo = np.array([[forca, tecnica, guarda, passagem]])
+    return pca.transform(novo)
+
 # =====================================================
-# FUNDO PERSONALIZADO
+# FUNDO
 # =====================================================
 
 def set_background(image_file):
@@ -131,137 +124,125 @@ def set_background(image_file):
             unsafe_allow_html=True
         )
 
-# =====================================================
-# MENU PRINCIPAL
-# =====================================================
-
-menu = st.sidebar.selectbox(
-    "Menu",
-    ["Cadastro de Atleta", "Avaliação Técnica"]
-)
-
 set_background("kimono.jpg")
 
 # =====================================================
-# 1️⃣ CADASTRO
+# MENU COM SESSION STATE
+# =====================================================
+
+if "menu" not in st.session_state:
+    st.session_state.menu = "Cadastro de Atleta"
+
+menu = st.sidebar.selectbox(
+    "Menu",
+    ["Cadastro de Atleta", "Avaliação Técnica"],
+    index=["Cadastro de Atleta", "Avaliação Técnica"].index(st.session_state.menu)
+)
+
+# =====================================================
+# CADASTRO
 # =====================================================
 
 if menu == "Cadastro de Atleta":
 
-    st.title("🥋 Cadastro Inicial do Atleta")
+    st.title("🥋 Cadastro de Atleta")
 
-    with st.form("cadastro_form"):
+    with st.form("cadastro"):
         nome = st.text_input("Nome")
         sobrenome = st.text_input("Sobrenome")
+        faixa = st.selectbox("Faixa", ["Branca", "Azul", "Roxa", "Marrom", "Preta"])
+        tempo = st.number_input("Tempo (meses)", min_value=0)
 
-        faixa = st.selectbox(
-            "Faixa",
-            ["Branca", "Azul", "Roxa", "Marrom", "Preta"]
-        )
+        if st.form_submit_button("Cadastrar"):
 
-        tempo = st.number_input(
-            "Tempo de treino (meses)",
-            min_value=0,
-            step=1
-        )
-
-        submitted = st.form_submit_button("Cadastrar")
-
-        if submitted:
             if nome and sobrenome:
                 add_athlete(nome, sobrenome, faixa, tempo)
-                st.success("✅ Atleta cadastrado com sucesso!")
+                st.success("Atleta cadastrado!")
+
+                st.session_state.menu = "Avaliação Técnica"
+                st.rerun()
             else:
                 st.warning("Preencha nome e sobrenome.")
 
 # =====================================================
-# 2️⃣ AVALIAÇÃO
+# AVALIAÇÃO
 # =====================================================
 
 if menu == "Avaliação Técnica":
 
-    st.title("📋 Avaliação Técnica BJJ")
+    st.title("📋 Avaliação Técnica")
 
-    athletes_df = get_athletes()
+    df = get_athletes()
 
-    if athletes_df.empty:
+    if df.empty:
         st.warning("Nenhum atleta cadastrado.")
         st.stop()
 
-    athlete_nome = st.selectbox(
+    atleta_nome = st.selectbox(
         "Selecione o atleta",
-        athletes_df["nome"] + " " + athletes_df["sobrenome"]
+        df["nome"] + " " + df["sobrenome"]
     )
 
-    athlete_data = athletes_df[
-        (athletes_df["nome"] + " " + athletes_df["sobrenome"]) == athlete_nome
+    atleta = df[
+        (df["nome"] + " " + df["sobrenome"]) == atleta_nome
     ].iloc[0]
 
-    tempo_meses = athlete_data["tempo_treino_meses"]
-
-    st.subheader("Responda de 1 (Muito baixo) a 5 (Muito alto)")
+    tempo_meses = int(atleta["tempo_treino_meses"])
 
     perguntas = [
-        # Força
-        "Consigo manter pressão constante por 5 minutos.",
-        "Meu jogo depende bastante de força física.",
-        "Consigo finalizar apenas controlando posição.",
-        "Tenho facilidade em estabilizar montada ou 100kg.",
-        "Meu jogo melhora contra atletas menores.",
-        # Técnica
-        "Aplico golpes com mínimo gasto de energia.",
-        "Tenho variações técnicas para uma posição.",
-        "Corrijo detalhes técnicos com facilidade.",
-        "Finalizo mais por técnica do que explosão.",
-        "Meu timing é diferencial.",
-        # Guarda
+        "Consigo manter pressão constante.",
+        "Meu jogo depende de força.",
+        "Finalizo controlando posição.",
+        "Estabilizo montada facilmente.",
+        "Sou forte fisicamente.",
+        "Uso pouca energia nos golpes.",
+        "Tenho variações técnicas.",
+        "Corrijo detalhes rápido.",
+        "Finalizo por técnica.",
+        "Tenho bom timing.",
         "Prefiro puxar guarda.",
-        "Tenho múltiplas guardas ativas.",
-        "Raspo atletas da mesma faixa com frequência.",
+        "Tenho múltiplas guardas.",
+        "Raspo com frequência.",
         "Me sinto confortável por baixo.",
-        "Finalizo da guarda com consistência.",
-        # Passagem
-        "Prefiro iniciar passando guarda.",
-        "Passo guarda sem explodir.",
-        "Uso pressão como estratégia.",
-        "Tenho controle forte em joelho na barriga.",
-        "Finalizo após passar guarda."
+        "Finalizo da guarda.",
+        "Prefiro passar guarda.",
+        "Passo sem explodir.",
+        "Uso pressão.",
+        "Controlo joelho na barriga.",
+        "Finalizo após passagem."
     ]
 
     respostas = []
 
-    with st.form("questionario"):
+    with st.form("avaliacao"):
         for p in perguntas:
             respostas.append(st.slider(p, 1, 5, 3))
 
-        submitted = st.form_submit_button("Finalizar Avaliação")
+        submitted = st.form_submit_button("Finalizar")
 
     if submitted:
 
-        forca, tecnica, guarda, passagem, score_global = calcular_scores(respostas)
-        faixa_estimada = estimar_faixa(score_global, tempo_meses)
+        forca, tecnica, guarda, passagem, score = calcular_scores(respostas)
+        faixa_estimada = estimar_faixa(score, tempo_meses)
+
+        componentes = calcular_pca_atual(forca, tecnica, guarda, passagem)
 
         st.success("Avaliação concluída!")
+        st.write("Score:", round(score, 2))
+        st.write("Faixa Estimada:", faixa_estimada)
 
-        st.markdown(f"""
-        **Score Global:** {round(score_global,2)}  
-        **Faixa Estimada:** {faixa_estimada}
-        """)
-
-        # PCA (estrutura pronta para dashboard)
-        matriz = np.array([[forca, tecnica, guarda, passagem]])
-        pca = PCA(n_components=2)
-        componentes = pca.fit_transform(matriz)
+        if componentes is not None:
+            st.write("PCA:", componentes)
 
         data_row = [
             len(connect_google_sheets().worksheet("respostas_questionario").get_all_records()) + 1,
-            athlete_data["athlete_id"],
+            atleta["athlete_id"],
             *respostas,
             round(forca,2),
             round(tecnica,2),
             round(guarda,2),
             round(passagem,2),
-            round(score_global,2),
+            round(score,2),
             faixa_estimada,
             datetime.now().strftime("%Y-%m-%d")
         ]
