@@ -56,9 +56,34 @@ def add_athlete(nome, sobrenome, faixa, tempo):
     ])
 
 def save_questionnaire(data_row):
-    sheet = connect_google_sheets()
-    worksheet = sheet.worksheet("respostas_questionario")
-    worksheet.append_row(data_row)
+   # =====================================================
+# PCA CORRIGIDO (USANDO HISTÓRICO)
+# =====================================================
+
+sheet = connect_google_sheets()
+df_scores = pd.DataFrame(
+    sheet.worksheet("respostas_questionario").get_all_records()
+)
+
+# Se existir histórico suficiente
+if len(df_scores) >= 2:
+
+    matriz = df_scores[[
+        "forca_score",
+        "tecnica_score",
+        "guarda_score",
+        "passagem_score"
+    ]].values
+
+    pca = PCA(n_components=2)
+    pca.fit(matriz)
+
+    # Projetar atleta atual
+    novo_atleta = np.array([[forca, tecnica, guarda, passagem]])
+    componentes = pca.transform(novo_atleta)
+
+else:
+    componentes = None
 
 # =====================================================
 # FUNÇÕES ANALÍTICAS
