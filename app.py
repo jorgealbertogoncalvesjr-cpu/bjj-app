@@ -524,7 +524,7 @@ if st.session_state.etapa == 2:
         )
 
       
-    # =====================================================
+# =====================================================
 # FUNÇÕES BANCO
 # =====================================================
 
@@ -547,7 +547,8 @@ def get_athletes():
         st.error(f"Erro ao acessar aba athletes: {e}")
         return pd.DataFrame()
 
-    # salvar atleta
+
+# salvar atleta
 add_athlete(
     st.session_state.nome,
     st.session_state.sobrenome,
@@ -572,48 +573,47 @@ save_questionnaire([
     datetime.now().strftime("%Y-%m-%d")
 ])
 
-        st.success("Avaliação concluída!")
+st.success("Avaliação concluída!")
 
-        st.write("Score:", round(score, 2))
-        st.write("Faixa estimada:", faixa_estimada)
+st.write("Score:", round(score, 2))
+st.write("Faixa estimada:", faixa_estimada)
 
-        pc1, pc2 = plot_pca(
-            forca,
-            tecnica,
-            guarda,
-            passagem,
-            condicionamento,
-            tempo_reacao,
-            estrategia
-        )
+pc1, pc2 = plot_pca(
+    forca,
+    tecnica,
+    guarda,
+    passagem,
+    condicionamento,
+    tempo_reacao,
+    estrategia
+)
 
-        perfil = classificar_perfil(pc1, pc2)
+perfil = classificar_perfil(pc1, pc2)
 
-        st.subheader("Perfil Técnico Identificado")
-        st.success(perfil)
+st.subheader("Perfil Técnico Identificado")
+st.success(perfil)
 
-        st.markdown(f"""
-        ### Perfil Técnico
+st.markdown(f"""
+### Perfil Técnico
 
-        **{perfil}**
+**{perfil}**
 
-        Este perfil representa a tendência dominante do jogo do atleta
-        considerando força, técnica, guarda e passagem.
-        """)
+Este perfil representa a tendência dominante do jogo do atleta
+considerando força, técnica, guarda e passagem.
+""")
 
-        plot_radar(forca, tecnica, guarda, passagem)
-        plot_correlation()
+plot_radar(forca, tecnica, guarda, passagem)
+plot_correlation()
 
-        pdf = gerar_pdf(
-            st.session_state.nome,
-            score,
-            faixa_estimada
-        )
+pdf = gerar_pdf(
+    st.session_state.nome,
+    score,
+    faixa_estimada
+)
 
-        with open(pdf, "rb") as f:
-            st.download_button(
-                "Baixar PDF",
-                f,
-                "Relatorio_BJJ.pdf"
-            )
-   
+with open(pdf, "rb") as f:
+    st.download_button(
+        "Baixar PDF",
+        f,
+        "Relatorio_BJJ.pdf"
+    )
