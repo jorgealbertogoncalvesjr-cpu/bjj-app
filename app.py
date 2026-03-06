@@ -132,7 +132,23 @@ def calcular_scores(respostas):
     condicionamento = float(np.mean(respostas[12:15]))
     tempo_reacao = float(np.mean(respostas[15:18]))
     estrategia = float(np.mean(respostas[18:20]))
+st.divider()
 
+st.subheader("Ficha Técnica do Atleta")
+
+col1, col2, col3 = st.columns(3)
+
+with col1:
+    st.metric("Score Geral", round(score,1))
+
+with col2:
+    st.metric("Faixa Estimada", faixa_estimada)
+
+with col3:
+    st.metric("Perfil Técnico", perfil)
+
+
+    
     score_global = float(np.mean([
         forca,
         tecnica,
@@ -276,17 +292,18 @@ def plot_pca(
     )
 
     # nomes quadrantes
-    ax.text(1.2,1.2,"Passador Técnico", fontsize=10)
-    ax.text(-2,1.2,"Guardeiro Técnico", fontsize=10)
-    ax.text(-2,-1.4,"Guardeiro Físico", fontsize=10)
-    ax.text(1.2,-1.4,"Passador Pressão", fontsize=10)
-
+    ax.text(2,2,"Ofensivo Técnico", fontsize=9)
+ax.text(-3,2,"Defensivo Técnico", fontsize=9)
+ax.text(2,-2,"Passador de Pressão", fontsize=9)
+ax.text(-3,-2,"Guardeiro Estratégico", fontsize=9)
     ax.set_title("Mapa Técnico do Atleta")
     ax.set_xlabel("PC1 — Guarda vs Passagem")
     ax.set_ylabel("PC2 — Técnica vs Força")
 
     ax.legend()
 
+
+    
     st.pyplot(fig)
 
     return pc1,pc2
@@ -413,25 +430,40 @@ def plot_perceptual_map(atleta_nome=None):
 
     st.pyplot(fig)
 
-def plot_radar(forca, tecnica, guarda, passagem):
+def plot_radar_comparativo(forca, tecnica, guarda, passagem):
 
-    categorias = ["Força", "Técnica", "Guarda", "Passagem"]
+    df = get_scores_df()
 
-    valores = [forca, tecnica, guarda, passagem]
-    valores += valores[:1]
+    categorias = ["Força","Técnica","Guarda","Passagem"]
 
-    angles = np.linspace(0, 2 * np.pi, len(categorias), endpoint=False).tolist()
+    atleta = [forca, tecnica, guarda, passagem]
+
+    media = [
+        df["forca_score"].mean(),
+        df["tecnica_score"].mean(),
+        df["guarda_score"].mean(),
+        df["passagem_score"].mean()
+    ]
+
+    atleta += atleta[:1]
+    media += media[:1]
+
+    angles = np.linspace(0, 2*np.pi, len(categorias), endpoint=False).tolist()
     angles += angles[:1]
 
-    fig, ax = plt.subplots(subplot_kw=dict(polar=True))
+    fig, ax = plt.subplots(figsize=(5,5), subplot_kw=dict(polar=True))
 
-    ax.plot(angles, valores)
-    ax.fill(angles, valores, alpha=0.25)
+    ax.plot(angles, atleta, linewidth=3, label="Atleta")
+    ax.fill(angles, atleta, alpha=0.2)
+
+    ax.plot(angles, media, linewidth=2, linestyle="dashed", label="Média Academia")
 
     ax.set_xticks(angles[:-1])
     ax.set_xticklabels(categorias)
 
-    ax.set_title("Perfil Técnico Radar")
+    ax.set_title("Radar Técnico Comparativo")
+
+    ax.legend()
 
     st.pyplot(fig)
 
@@ -516,6 +548,36 @@ def plot_correlation():
     ax.set_title("Matriz de Correlação Técnica")
 
     st.pyplot(fig)
+
+def ranking_academia():
+
+    df = get_scores_df()
+    atletas = get_athletes()
+
+    if len(df)==0:
+        return
+
+    df["score_total"] = df[[
+        "forca_score",
+        "tecnica_score",
+        "guarda_score",
+        "passagem_score",
+        "condicionamento_score",
+        "tempo_reacao_score",
+        "estrategia_score"
+    ]].mean(axis=1)
+
+    ranking = df.sort_values("score_total", ascending=False)
+
+    ranking["nome"] = atletas["nome"]
+
+    st.subheader("Ranking Técnico da Academia")
+
+    st.dataframe(
+        ranking[["nome","score_total"]],
+        use_container_width=True
+    )
+
 
 # =====================================================
 # 7️⃣ GERAÇÃO DE RELATÓRIO PDF
@@ -782,42 +844,53 @@ if menu == "Nova Avaliação":
             st.write("Score:", round(score, 2))
             st.write("Faixa estimada:", faixa_estimada)
 
+st.divider()
 
-            pc1, pc2 = plot_pca(
-                forca,
-                tecnica,
-                guarda,
-                passagem,
-                condicionamento,
-                tempo_reacao,
-                estrategia
-            )
+st.subheader("Análise Técnica do Atleta")
 
+tab1, tab2, tab3, tab4 = st.tabs([
+    "Radar Técnico",
+    "Scouting Map (PCA)",
+    "Heatmap Academia",
+    "Mapa Perceptual"
+])
 
-            perfil = classificar_perfil(pc1, pc2)
+with tab1:
 
-            st.subheader("Perfil Técnico Identificado")
-            st.success(perfil)
+    st.caption("Distribuição das competências do atleta")
 
+    plot_radar(
+        forca,
+        tecnica,
+        guarda,
+        passagem
+    )
 
-            st.markdown(f"""
-            ### Perfil Técnico
+with tab2:
 
-            **{perfil}**
+    st.caption("Posicionamento técnico do atleta comparado à base")
 
-            Este perfil representa a tendência dominante do jogo do atleta
-            considerando força, técnica, guarda e passagem.
-            """)
+    plot_pca(
+        forca,
+        tecnica,
+        guarda,
+        passagem,
+        condicionamento,
+        tempo_reacao,
+        estrategia
+    )
 
+with tab3:
 
-            plot_radar(forca, tecnica, guarda, passagem)
-            plot_correlation()
+    st.caption("Mapa de intensidade das competências")
 
+    plot_heatmap()
 
-            # novos gráficos adicionados
-            plot_perceptual_map()
-            plot_heatmap()
+with tab4:
 
+    st.caption("Associação perceptual entre atletas")
+
+    plot_perceptual_map(st.session_state.nome)
 
             pdf = gerar_pdf(
                 st.session_state.nome,
