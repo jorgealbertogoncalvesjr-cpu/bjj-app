@@ -12,7 +12,7 @@ import base64
 import os
 from datetime import datetime
 from sklearn.decomposition import PCA
-
+import io
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import inch
@@ -36,10 +36,14 @@ st.set_page_config(
 
 @st.cache_resource
 def connect_google():
-    gc = gspread.service_account_from_dict(
-        st.secrets["gcp_service_account"]
-    )
-    return gc.open("bjj_app_database")
+    try:
+        gc = gspread.service_account_from_dict(
+            st.secrets["gcp_service_account"]
+        )
+        return gc.open("bjj_app_database")
+    except Exception as e:
+        st.error("Erro ao conectar com Google Sheets")
+        st.stop()
 
 
 # =====================================================
@@ -52,9 +56,13 @@ def get_athletes():
 
 
 def get_scores_df():
-    return pd.DataFrame(
-        connect_google().worksheet("respostas_questionario").get_all_records()
-    )
+    ws = connect_google().worksheet("respostas_questionario")
+    data = ws.get_all_records()
+
+    if len(data) == 0:
+        return pd.DataFrame()
+
+    return pd.DataFrame(data)
 
 
 def add_athlete(nome, sobrenome, faixa, tempo):
