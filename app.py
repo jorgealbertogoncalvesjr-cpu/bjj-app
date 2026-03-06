@@ -51,8 +51,20 @@ def connect_google():
 # =====================================================
 
 def get_athletes():
-    sheet = connect_google()
-    return pd.DataFrame(sheet.worksheet("athletes").get_all_records())
+
+    try:
+        sheet = connect_google()
+        ws = sheet.worksheet("athletes")
+        data = ws.get_all_records()
+
+        if len(data) == 0:
+            return pd.DataFrame()
+
+        return pd.DataFrame(data)
+
+    except Exception as e:
+        st.error(f"Erro ao acessar aba athletes: {e}")
+        st.stop()
 
 
 def get_scores_df():
