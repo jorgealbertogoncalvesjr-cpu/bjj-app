@@ -191,7 +191,7 @@ def classificar_perfil(pc1, pc2):
 # =====================================================
 
 # =====================================================
-# PCA MONEYBALL STYLE
+# PCA MONEY STYLE
 # =====================================================
 
 from sklearn.preprocessing import StandardScaler
