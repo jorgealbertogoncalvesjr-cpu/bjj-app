@@ -340,7 +340,7 @@ def plot_pca(
 
     return pc1, pc2
 
-def plot_perceptual_map():
+def plot_perceptual_map(atleta_nome=None):
 
     df = get_scores_df()
     atletas = get_athletes()
@@ -369,29 +369,37 @@ def plot_perceptual_map():
 
     fig, ax = plt.subplots(figsize=(9,6))
 
-    ax.scatter(
-        componentes[:,0],
-        componentes[:,1],
-        color="steelblue",
-        s=100
-    )
-
-    # adicionar nome do atleta
-    for i in range(len(df)):
+    for i in range(len(componentes)):
 
         if i < len(atletas):
-
             nome = atletas.iloc[i]["nome"]
+        else:
+            nome = f"A{i}"
+
+        x = componentes[i,0]
+        y = componentes[i,1]
+
+        # atleta avaliado
+        if nome == atleta_nome:
+
+            ax.scatter(
+                x,y,
+                color="darkorange",
+                s=250,
+                edgecolor="black",
+                label="Atleta Avaliado" if i==0 else ""
+            )
 
         else:
-            nome = f"A{i+1}"
 
-        ax.text(
-            componentes[i,0],
-            componentes[i,1],
-            nome,
-            fontsize=9
-        )
+            ax.scatter(
+                x,y,
+                color="steelblue",
+                s=90,
+                label="Base de atletas" if i==1 else ""
+            )
+
+        ax.text(x,y,nome,fontsize=9)
 
     ax.axhline(0, linestyle="--", color="gray")
     ax.axvline(0, linestyle="--", color="gray")
@@ -400,6 +408,8 @@ def plot_perceptual_map():
 
     ax.set_xlabel("Dimensão Técnica 1")
     ax.set_ylabel("Dimensão Técnica 2")
+
+    ax.legend()
 
     st.pyplot(fig)
 
@@ -428,6 +438,7 @@ def plot_radar(forca, tecnica, guarda, passagem):
 def plot_heatmap():
 
     df = get_scores_df()
+    atletas = get_athletes()
 
     if len(df) == 0:
         return
@@ -442,10 +453,20 @@ def plot_heatmap():
         "estrategia_score"
     ]].copy()
 
-    # converter para número corretamente
     matriz = matriz.apply(pd.to_numeric, errors="coerce")
 
-    fig, ax = plt.subplots(figsize=(9,4))
+    # adicionar nomes
+    nomes = []
+
+    for i in range(len(matriz)):
+        if i < len(atletas):
+            nomes.append(atletas.iloc[i]["nome"])
+        else:
+            nomes.append(f"A{i}")
+
+    matriz.index = nomes
+
+    fig, ax = plt.subplots(figsize=(10,5))
 
     sns.heatmap(
         matriz,
@@ -455,10 +476,14 @@ def plot_heatmap():
         linewidths=0.5,
         vmin=0,
         vmax=100,
+        cbar_kws={"label":"Score Técnico"},
         ax=ax
     )
 
     ax.set_title("Heatmap de Competências Técnicas")
+
+    ax.set_ylabel("Atletas")
+    ax.set_xlabel("Dimensões Técnicas")
 
     st.pyplot(fig)
 
