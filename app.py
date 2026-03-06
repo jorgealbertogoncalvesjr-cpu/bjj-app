@@ -190,6 +190,10 @@ def classificar_perfil(pc1, pc2):
 # 6️⃣ FUNÇÕES GRÁFICAS
 # =====================================================
 
+# =====================================================
+# PCA MONEYBALL STYLE
+# =====================================================
+
 from sklearn.preprocessing import StandardScaler
 
 def plot_pca(
@@ -204,8 +208,8 @@ def plot_pca(
 
     df = get_scores_df()
 
-    if len(df) < 3:
-        st.warning("PCA requer pelo menos 3 avaliações.")
+    if len(df) < 2:
+        st.warning("PCA requer mínimo 2 avaliações registradas.")
         return 0, 0
 
     matriz = df[[
@@ -239,27 +243,71 @@ def plot_pca(
 
     novo = pca.transform(novo)
 
-    fig, ax = plt.subplots()
+    pc1 = novo[0][0]
+    pc2 = novo[0][1]
 
-    sns.scatterplot(
-        data=df,
-        x="PC1",
-        y="PC2",
-        ax=ax
-    )
+    fig, ax = plt.subplots(figsize=(8,8))
+
+    # -----------------------------
+    # QUADRANTES COLORIDOS
+    # -----------------------------
+
+    ax.axhspan(0, 10, xmin=0.5, color="#d4f4dd", alpha=0.5)
+    ax.axhspan(0, 10, xmax=0.5, color="#d4e6f4", alpha=0.5)
+    ax.axhspan(-10, 0, xmin=0.5, color="#f4e1d2", alpha=0.5)
+    ax.axhspan(-10, 0, xmax=0.5, color="#f9d6d5", alpha=0.5)
+
+    ax.axhline(0, color="black")
+    ax.axvline(0, color="black")
+
+    # -----------------------------
+    # HISTÓRICO ATLETAS
+    # -----------------------------
 
     ax.scatter(
-        novo[0][0],
-        novo[0][1],
-        s=250,
-        marker="X"
+        df["PC1"],
+        df["PC2"],
+        color="gray",
+        alpha=0.6,
+        s=60
     )
 
-    ax.set_title("Mapa PCA - Perfil Técnico BJJ")
+    # -----------------------------
+    # ATLETA ATUAL
+    # -----------------------------
+
+    ax.scatter(
+        pc1,
+        pc2,
+        color="red",
+        s=250,
+        marker="*",
+        label="Atleta Avaliado"
+    )
+
+    # -----------------------------
+    # NOMES DOS QUADRANTES
+    # -----------------------------
+
+    ax.text(2, 2, "Passador Técnico", fontsize=10)
+    ax.text(-3, 2, "Guardeiro Técnico", fontsize=10)
+    ax.text(-3, -2, "Guardeiro Físico", fontsize=10)
+    ax.text(2, -2, "Passador Pressão", fontsize=10)
+
+    # -----------------------------
+    # ESTILO DASHBOARD
+    # -----------------------------
+
+    ax.set_title("Mapa Técnico do Atleta — PCA Scouting", fontsize=14)
+
+    ax.set_xlabel("PC1 — Passagem vs Guarda")
+    ax.set_ylabel("PC2 — Técnica vs Força")
+
+    ax.legend()
 
     st.pyplot(fig)
 
-    return novo[0][0], novo[0][1]
+    return pc1, pc2
 
 
 def plot_radar(forca, tecnica, guarda, passagem):
