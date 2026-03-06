@@ -17,7 +17,7 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import inch
 from reportlab.lib.styles import getSampleStyleSheet
-
+from sklearn.preprocessing import StandardScaler
 
 # =====================================================
 # 2️⃣ CONFIGURAÇÃO
@@ -110,7 +110,7 @@ def calcular_scores(respostas):
 
 
 def estimar_faixa(score, tempo):
-    if score >= 85 and tempo >= 60:
+    if score >= 85 and tempo >= 66:
         return "Preta"
     elif score >= 70 and tempo >= 48:
         return "Marrom"
@@ -129,10 +129,12 @@ def estimar_faixa(score, tempo):
 def plot_pca(forca, tecnica, guarda, passagem):
 
     df = get_scores_df()
-    if len(df) < 2:
-        st.warning("PCA requer mínimo 2 avaliações registradas.")
+
+    if df.empty or len(df) < 2:
+        st.warning("PCA requer no mínimo 2 avaliações registradas.")
         return
 
+    # Seleção das variáveis
     matriz = df[[
         "forca_score",
         "tecnica_score",
@@ -140,25 +142,50 @@ def plot_pca(forca, tecnica, guarda, passagem):
         "passagem_score"
     ]].astype(float)
 
+    # Padronização (importante para PCA)
+    scaler = StandardScaler()
+    matriz_scaled = scaler.fit_transform(matriz)
+
+    # PCA
     pca = PCA(n_components=2)
-    componentes = pca.fit_transform(matriz)
+    componentes = pca.fit_transform(matriz_scaled)
 
     df["PC1"] = componentes[:, 0]
     df["PC2"] = componentes[:, 1]
 
-    novo = pca.transform([[forca, tecnica, guarda, passagem]])
+    # Projetar novo atleta no espaço PCA
+    novo_scaled = scaler.transform([[forca, tecnica, guarda, passagem]])
+    novo = pca.transform(novo_scaled)
 
+    # Gráfico
     fig, ax = plt.subplots()
-    sns.scatterplot(data=df, x="PC1", y="PC2", ax=ax)
-    ax.scatter(novo[0][0], novo[0][1], s=200)
+
+    sns.scatterplot(
+        data=df,
+        x="PC1",
+        y="PC2",
+        ax=ax
+    )
+
+    ax.scatter(
+        novo[0][0],
+        novo[0][1],
+        s=200,
+        color="red",
+        label="Atleta atual"
+    )
+
+    ax.legend()
     ax.set_title("Mapa PCA - Perfil Técnico")
 
     st.pyplot(fig)
 
 
+
 def plot_radar(forca, tecnica, guarda, passagem):
 
     categorias = ["Força", "Técnica", "Guarda", "Passagem"]
+
     valores = [forca, tecnica, guarda, passagem]
     valores += valores[:1]
 
@@ -166,21 +193,25 @@ def plot_radar(forca, tecnica, guarda, passagem):
     angles += angles[:1]
 
     fig, ax = plt.subplots(subplot_kw=dict(polar=True))
+
     ax.plot(angles, valores)
     ax.fill(angles, valores, alpha=0.25)
 
     ax.set_xticks(angles[:-1])
     ax.set_xticklabels(categorias)
+
     ax.set_title("Perfil Técnico Radar")
 
     st.pyplot(fig)
 
 
+
 def plot_correlation():
 
     df = get_scores_df()
-    if len(df) < 2:
-        st.warning("Correlação requer histórico mínimo.")
+
+    if df.empty or len(df) < 2:
+        st.warning("Correlação requer histórico mínimo de avaliações.")
         return
 
     matriz = df[[
@@ -193,33 +224,66 @@ def plot_correlation():
     corr = matriz.corr()
 
     fig, ax = plt.subplots()
-    sns.heatmap(corr, annot=True, cmap="coolwarm", ax=ax)
-    ax.set_title("Matriz de Correlação")
+
+    sns.heatmap(
+        corr,
+        annot=True,
+        cmap="coolwarm",
+        ax=ax
+    )
+
+    ax.set_title("Matriz de Correlação Técnica")
 
     st.pyplot(fig)
 
-
 # =====================================================
-# 7️⃣ PDF
+# 7️⃣ GERAÇÃO DE RELATÓRIO PDF
 # =====================================================
 
-def gerar_pdf(nome, score, faixa):
+def gerar_pdf(nome_atleta, score_global, faixa_estimada):
 
     file_path = "relatorio_bjj.pdf"
-    doc = SimpleDocTemplate(file_path, pagesize=A4)
+
+    doc = SimpleDocTemplate(
+        file_path,
+        pagesize=A4
+    )
+
     styles = getSampleStyleSheet()
 
-    elements = []
-    elements.append(Paragraph("<b>Relatório Técnico BJJ</b>", styles["Title"]))
-    elements.append(Spacer(1, 0.5 * inch))
-    elements.append(Paragraph(f"Atleta: {nome}", styles["Normal"]))
-    elements.append(Paragraph(f"Score Global: {round(score,2)}", styles["Normal"]))
-    elements.append(Paragraph(f"Faixa Estimada: {faixa}", styles["Normal"]))
+    elementos = []
 
-    doc.build(elements)
+    elementos.append(
+        Paragraph("Relatório Técnico BJJ", styles["Title"])
+    )
+
+    elementos.append(Spacer(1, 0.5 * inch))
+
+    elementos.append(
+        Paragraph(f"Atleta: {nome_atleta}", styles["Normal"])
+    )
+
+    elementos.append(
+        Paragraph(f"Score Global: {round(score_global,2)}", styles["Normal"])
+    )
+
+    elementos.append(
+        Paragraph(f"Faixa Estimada: {faixa_estimada}", styles["Normal"])
+    )
+
+    elementos.append(Spacer(1, 0.5 * inch))
+
+    elementos.append(
+        Paragraph(
+            "Este relatório foi gerado automaticamente com base nas respostas "
+            "do questionário técnico e no histórico de avaliações armazenadas.",
+            styles["Normal"]
+        )
+    )
+
+    doc.build(elementos)
+
     return file_path
-
-
 # =====================================================
 # 8️⃣ MENU
 # =====================================================
@@ -320,18 +384,18 @@ if menu == "Avaliação":
         st.write("Score:", round(score,2))
         st.write("Faixa Estimada:", faixa_estimada)
 
-        save_questionnaire([
-            int(len(get_scores_df()) + 1),
-            int(atleta["athlete_id"]),
-            *respostas,
-            float(forca),
-            float(tecnica),
-            float(guarda),
-            float(passagem),
-            float(score),
-            faixa_estimada,
-            datetime.now().strftime("%Y-%m-%d")
-        ])
+      save_questionnaire([
+    int(len(get_scores_df()) + 1),
+    int(atleta["athlete_id"]),
+    float(forca),
+    float(tecnica),
+    float(guarda),
+    float(passagem),
+    0,
+    0,
+    0,
+    datetime.now().strftime("%Y-%m-%d")
+])
 
         plot_pca(forca, tecnica, guarda, passagem)
         plot_radar(forca, tecnica, guarda, passagem)
