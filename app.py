@@ -50,20 +50,28 @@ def connect_google():
 # 4️⃣ FUNÇÕES BANCO
 # =====================================================
 
-def get_athletes():
+def add_athlete(nome, sobrenome, faixa, tempo):
 
     try:
+
         sheet = connect_google()
         ws = sheet.worksheet("athletes")
-        data = ws.get_all_records()
 
-        if len(data) == 0:
-            return pd.DataFrame()
+        records = ws.get_all_records()
+        athlete_id = len(records) + 1
 
-        return pd.DataFrame(data)
+        ws.append_row([
+            int(athlete_id),
+            str(nome),
+            str(sobrenome),
+            str(faixa),
+            int(tempo),
+            datetime.now().strftime("%Y-%m-%d")
+        ])
 
     except Exception as e:
-        st.error(f"Erro ao acessar aba athletes: {e}")
+
+        st.error(f"Erro ao salvar atleta: {e}")
         st.stop()
 
 
