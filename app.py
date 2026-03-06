@@ -519,9 +519,34 @@ if st.session_state.etapa == 2:
             st.session_state.tempo
         )
 
-        df = get_athletes()
-        atleta_id = df.iloc[-1]["athlete_id"]
+        def get_athletes():
+    sheet = connect_google()
+    return pd.DataFrame(sheet.worksheet("athletes").get_all_records())
 
+    # =====================================================
+# FUNÇÕES BANCO
+# =====================================================
+
+def get_athletes():
+
+    try:
+
+        sheet = connect_google()
+        ws = sheet.worksheet("athletes")
+
+        data = ws.get_all_records()
+
+        if len(data) == 0:
+            return pd.DataFrame()
+
+        return pd.DataFrame(data)
+
+    except Exception as e:
+
+        st.error(f"Erro ao acessar aba athletes: {e}")
+        return pd.DataFrame()
+
+    
         # salvar scores
         save_questionnaire([
             int(len(get_scores_df()) + 1),
