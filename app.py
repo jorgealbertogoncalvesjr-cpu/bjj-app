@@ -370,37 +370,46 @@ if menu == "Avaliação":
 
     respostas = []
 
-    with st.form("avaliacao"):
-        for p in perguntas:
-            respostas.append(int(st.slider(p, 1, 5, 3)))
-        submitted = st.form_submit_button("Finalizar Avaliação")
+   with st.form("avaliacao"):
 
-    if submitted:
+    for p in perguntas:
+        respostas.append(int(st.slider(p, 1, 5, 3)))
 
-        forca, tecnica, guarda, passagem, score = calcular_scores(respostas)
-        faixa_estimada = estimar_faixa(score, tempo)
+    submitted = st.form_submit_button("Finalizar Avaliação")
 
-        st.success("Avaliação concluída!")
-        st.write("Score:", round(score,2))
-        st.write("Faixa Estimada:", faixa_estimada)
 
-      save_questionnaire([
-    int(len(get_scores_df()) + 1),
-    int(atleta["athlete_id"]),
-    float(forca),
-    float(tecnica),
-    float(guarda),
-    float(passagem),
-    0,
-    0,
-    0,
-    datetime.now().strftime("%Y-%m-%d")
-])
+if submitted:
 
-        plot_pca(forca, tecnica, guarda, passagem)
-        plot_radar(forca, tecnica, guarda, passagem)
-        plot_correlation()
+    forca, tecnica, guarda, passagem, score = calcular_scores(respostas)
 
-        pdf = gerar_pdf(atleta_nome, score, faixa_estimada)
-        with open(pdf, "rb") as f:
-            st.download_button("Baixar PDF", f, "Relatorio_BJJ.pdf")
+    faixa_estimada = estimar_faixa(score, tempo)
+
+    st.success("Avaliação concluída!")
+    st.write("Score:", round(score, 2))
+    st.write("Faixa Estimada:", faixa_estimada)
+
+    save_questionnaire([
+        int(len(get_scores_df()) + 1),
+        int(atleta["athlete_id"]),
+        float(forca),
+        float(tecnica),
+        float(guarda),
+        float(passagem),
+        0,
+        0,
+        0,
+        datetime.now().strftime("%Y-%m-%d")
+    ])
+
+    plot_pca(forca, tecnica, guarda, passagem)
+    plot_radar(forca, tecnica, guarda, passagem)
+    plot_correlation()
+
+    pdf = gerar_pdf(atleta_nome, score, faixa_estimada)
+
+    with open(pdf, "rb") as f:
+        st.download_button(
+            "Baixar PDF",
+            f,
+            "Relatorio_BJJ.pdf"
+        )
