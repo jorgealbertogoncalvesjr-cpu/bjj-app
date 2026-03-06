@@ -194,7 +194,7 @@ def plot_pca(
 
     if len(df) < 3:
         st.warning("PCA requer pelo menos 3 avaliações.")
-        return
+        return 0, 0
 
     matriz = df[[
         "forca_score",
@@ -247,8 +247,7 @@ def plot_pca(
 
     st.pyplot(fig)
 
-return novo[0][0], novo[0][1]
-
+    return novo[0][0], novo[0][1]
 
 
 def plot_radar(forca, tecnica, guarda, passagem):
