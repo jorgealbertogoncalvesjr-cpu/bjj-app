@@ -478,7 +478,7 @@ if menu == "Nova Avaliação":
 
         if submitted:
 
-            forca, tecnica, guarda, passagem, score = calcular_scores(respostas)
+            forca, tecnica, guarda, passagem, condicionamento, tempo_reacao, estrategia, score = calcular_scores(respostas)
 
             faixa_estimada = estimar_faixa(
                 score,
@@ -515,7 +515,15 @@ if menu == "Nova Avaliação":
             st.write("Score:", round(score,2))
             st.write("Faixa estimada:", faixa_estimada)
 
-            plot_pca(forca, tecnica, guarda, passagem)
+            plot_pca(
+    forca,
+    tecnica,
+    guarda,
+    passagem,
+    condicionamento,
+    tempo_reacao,
+    estrategia
+)
             plot_radar(forca, tecnica, guarda, passagem)
             plot_correlation()
 
