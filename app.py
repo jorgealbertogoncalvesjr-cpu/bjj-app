@@ -50,6 +50,10 @@ def connect_google():
 # 4️⃣ FUNÇÕES BANCO
 # =====================================================
 
+def get_athletes():
+    sheet = connect_google()
+    return pd.DataFrame(sheet.worksheet("athletes").get_all_records())
+
 def add_athlete(nome, sobrenome, faixa, tempo):
 
     try:
@@ -519,10 +523,7 @@ if st.session_state.etapa == 2:
             st.session_state.tempo
         )
 
-        def get_athletes():
-    sheet = connect_google()
-    return pd.DataFrame(sheet.worksheet("athletes").get_all_records())
-
+      
     # =====================================================
 # FUNÇÕES BANCO
 # =====================================================
@@ -546,20 +547,30 @@ def get_athletes():
         st.error(f"Erro ao acessar aba athletes: {e}")
         return pd.DataFrame()
 
-    
-        # salvar scores
-        save_questionnaire([
-            int(len(get_scores_df()) + 1),
-            int(atleta_id),
-            float(forca),
-            float(tecnica),
-            float(guarda),
-            float(passagem),
-            float(condicionamento),
-            float(tempo_reacao),
-            float(estrategia),
-            datetime.now().strftime("%Y-%m-%d")
-        ])
+    # salvar atleta
+add_athlete(
+    st.session_state.nome,
+    st.session_state.sobrenome,
+    st.session_state.faixa,
+    st.session_state.tempo
+)
+
+df = get_athletes()
+atleta_id = df.iloc[-1]["athlete_id"]
+
+# salvar scores
+save_questionnaire([
+    int(len(get_scores_df()) + 1),
+    int(atleta_id),
+    float(forca),
+    float(tecnica),
+    float(guarda),
+    float(passagem),
+    float(condicionamento),
+    float(tempo_reacao),
+    float(estrategia),
+    datetime.now().strftime("%Y-%m-%d")
+])
 
         st.success("Avaliação concluída!")
 
