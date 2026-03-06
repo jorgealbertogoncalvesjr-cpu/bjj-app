@@ -209,8 +209,8 @@ def plot_pca(
     df = get_scores_df()
 
     if len(df) < 2:
-        st.warning("PCA requer mínimo 2 avaliações registradas.")
-        return 0, 0
+        st.warning("PCA requer mínimo 2 avaliações.")
+        return 0,0
 
     matriz = df[[
         "forca_score",
@@ -232,6 +232,7 @@ def plot_pca(
     df["PC2"] = componentes[:,1]
 
     novo = scaler.transform([[
+
         forca,
         tecnica,
         guarda,
@@ -239,6 +240,7 @@ def plot_pca(
         condicionamento,
         tempo_reacao,
         estrategia
+
     ]])
 
     novo = pca.transform(novo)
@@ -246,19 +248,48 @@ def plot_pca(
     pc1 = novo[0][0]
     pc2 = novo[0][1]
 
-    fig, ax = plt.subplots(figsize=(8,8))
+    fig, ax = plt.subplots(figsize=(8,6))
 
-    # -----------------------------
-    # QUADRANTES COLORIDOS
-    # -----------------------------
+    # grid
+    ax.grid(True, linestyle="--", alpha=0.4)
 
-    ax.axhspan(0, 10, xmin=0.5, color="#d4f4dd", alpha=0.5)
-    ax.axhspan(0, 10, xmax=0.5, color="#d4e6f4", alpha=0.5)
-    ax.axhspan(-10, 0, xmin=0.5, color="#f4e1d2", alpha=0.5)
-    ax.axhspan(-10, 0, xmax=0.5, color="#f9d6d5", alpha=0.5)
+    # linhas centrais
+    ax.axhline(0, linestyle="--", color="gray")
+    ax.axvline(0, linestyle="--", color="gray")
 
-    ax.axhline(0, color="black")
-    ax.axvline(0, color="black")
+    # histórico atletas
+    ax.scatter(
+        df["PC1"],
+        df["PC2"],
+        color="lightgray",
+        s=80
+    )
+
+    # atleta avaliado
+    ax.scatter(
+        pc1,
+        pc2,
+        color="darkorange",
+        edgecolor="black",
+        s=250,
+        label="Atleta Avaliado"
+    )
+
+    # nomes quadrantes
+    ax.text(1.2,1.2,"Passador Técnico", fontsize=10)
+    ax.text(-2,1.2,"Guardeiro Técnico", fontsize=10)
+    ax.text(-2,-1.4,"Guardeiro Físico", fontsize=10)
+    ax.text(1.2,-1.4,"Passador Pressão", fontsize=10)
+
+    ax.set_title("Mapa Técnico do Atleta")
+    ax.set_xlabel("PC1 — Guarda vs Passagem")
+    ax.set_ylabel("PC2 — Técnica vs Força")
+
+    ax.legend()
+
+    st.pyplot(fig)
+
+    return pc1,pc2
 
     # -----------------------------
     # HISTÓRICO ATLETAS
@@ -309,6 +340,55 @@ def plot_pca(
 
     return pc1, pc2
 
+def plot_perceptual_map():
+
+    df = get_scores_df()
+
+    if len(df) < 2:
+        st.warning("Dados insuficientes.")
+        return
+
+    matriz = df[[
+        "forca_score",
+        "tecnica_score",
+        "guarda_score",
+        "passagem_score",
+        "condicionamento_score",
+        "tempo_reacao_score",
+        "estrategia_score"
+    ]].astype(float)
+
+    scaler = StandardScaler()
+    matriz_scaled = scaler.fit_transform(matriz)
+
+    pca = PCA(n_components=2)
+    componentes = pca.fit_transform(matriz_scaled)
+
+    fig, ax = plt.subplots(figsize=(8,6))
+
+    ax.scatter(
+        componentes[:,0],
+        componentes[:,1],
+        color="steelblue",
+        s=80
+    )
+
+    for i in range(len(df)):
+        ax.text(
+            componentes[i,0],
+            componentes[i,1],
+            f"A{i+1}",
+            fontsize=9
+        )
+
+    ax.axhline(0, linestyle="--", color="gray")
+    ax.axvline(0, linestyle="--", color="gray")
+
+    ax.set_title("Mapa Perceptual — Perfil Técnico dos Atletas")
+    ax.set_xlabel("Dimensão Técnica 1")
+    ax.set_ylabel("Dimensão Técnica 2")
+
+    st.pyplot(fig)
 
 def plot_radar(forca, tecnica, guarda, passagem):
 
@@ -332,7 +412,36 @@ def plot_radar(forca, tecnica, guarda, passagem):
 
     st.pyplot(fig)
 
+def plot_heatmap():
 
+    df = get_scores_df()
+
+    if len(df) == 0:
+        return
+
+    matriz = df[[
+        "forca_score",
+        "tecnica_score",
+        "guarda_score",
+        "passagem_score",
+        "condicionamento_score",
+        "tempo_reacao_score",
+        "estrategia_score"
+    ]]
+
+    fig, ax = plt.subplots(figsize=(8,4))
+
+    sns.heatmap(
+        matriz,
+        cmap="RdYlGn",
+        annot=True,
+        linewidths=.5,
+        ax=ax
+    )
+
+    ax.set_title("Heatmap de Competências Técnicas")
+
+    st.pyplot(fig)
 
 def plot_correlation():
 
