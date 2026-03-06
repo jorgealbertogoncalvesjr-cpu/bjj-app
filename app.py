@@ -544,9 +544,14 @@ if menu == "Nova Avaliação":
     tempo_reacao,
     estrategia
 )
+
 perfil = classificar_perfil(pc1, pc2)
 
 st.subheader("Perfil Técnico Identificado")
+st.success(perfil)
+
+plot_radar(forca, tecnica, guarda, passagem)
+plot_correlation()
 
 st.success(perfil)
 st.markdown(f"""
