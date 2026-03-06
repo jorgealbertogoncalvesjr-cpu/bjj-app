@@ -309,6 +309,42 @@ menu = st.sidebar.selectbox(
 )
 
 
+if "etapa" not in st.session_state:
+    st.session_state.etapa = 1
+
+
+if menu == "Nova Avaliação":
+
+    if st.session_state.etapa == 1:
+
+        st.title("Nova Avaliação Técnica")
+
+        nome = st.text_input("Nome")
+        sobrenome = st.text_input("Sobrenome")
+
+        faixa = st.selectbox(
+            "Faixa atual",
+            ["Branca","Azul","Roxa","Marrom","Preta"]
+        )
+
+        tempo = st.number_input(
+            "Tempo de treino (meses)",
+            min_value=0
+        )
+
+        if st.button("Iniciar Avaliação"):
+
+            if nome and sobrenome:
+
+                st.session_state.nome = nome
+                st.session_state.sobrenome = sobrenome
+                st.session_state.faixa = faixa
+                st.session_state.tempo = tempo
+
+                st.session_state.etapa = 2
+                st.rerun()
+
+
 # =====================================================
 # 9️⃣ CADASTRO
 # =====================================================
