@@ -112,13 +112,35 @@ def save_questionnaire(data_row):
 # =====================================================
 
 def calcular_scores(respostas):
-    forca = float(np.mean(respostas[0:5]))
-    tecnica = float(np.mean(respostas[5:10]))
-    guarda = float(np.mean(respostas[10:15]))
-    passagem = float(np.mean(respostas[15:20]))
-    score_global = float(np.mean([forca, tecnica, guarda, passagem]))
 
-    return forca, tecnica, guarda, passagem, score_global
+    forca = float(np.mean(respostas[0:3]))
+    tecnica = float(np.mean(respostas[3:6]))
+    guarda = float(np.mean(respostas[6:9]))
+    passagem = float(np.mean(respostas[9:12]))
+    condicionamento = float(np.mean(respostas[12:15]))
+    tempo_reacao = float(np.mean(respostas[15:18]))
+    estrategia = float(np.mean(respostas[18:20]))
+
+    score_global = float(np.mean([
+        forca,
+        tecnica,
+        guarda,
+        passagem,
+        condicionamento,
+        tempo_reacao,
+        estrategia
+    ]))
+
+    return (
+        forca,
+        tecnica,
+        guarda,
+        passagem,
+        condicionamento,
+        tempo_reacao,
+        estrategia,
+        score_global
+    )
 
 
 def estimar_faixa(score, tempo):
@@ -138,38 +160,55 @@ def estimar_faixa(score, tempo):
 # 6️⃣ FUNÇÕES GRÁFICAS
 # =====================================================
 
-def plot_pca(forca, tecnica, guarda, passagem):
+from sklearn.preprocessing import StandardScaler
+
+def plot_pca(
+    forca,
+    tecnica,
+    guarda,
+    passagem,
+    condicionamento,
+    tempo_reacao,
+    estrategia
+):
 
     df = get_scores_df()
 
-    if df.empty or len(df) < 2:
-        st.warning("PCA requer no mínimo 2 avaliações registradas.")
+    if len(df) < 3:
+        st.warning("PCA requer pelo menos 3 avaliações.")
         return
 
-    # Seleção das variáveis
     matriz = df[[
         "forca_score",
         "tecnica_score",
         "guarda_score",
-        "passagem_score"
+        "passagem_score",
+        "condicionamento_score",
+        "tempo_reacao_score",
+        "estrategia_score"
     ]].astype(float)
 
-    # Padronização (importante para PCA)
     scaler = StandardScaler()
     matriz_scaled = scaler.fit_transform(matriz)
 
-    # PCA
     pca = PCA(n_components=2)
     componentes = pca.fit_transform(matriz_scaled)
 
-    df["PC1"] = componentes[:, 0]
-    df["PC2"] = componentes[:, 1]
+    df["PC1"] = componentes[:,0]
+    df["PC2"] = componentes[:,1]
 
-    # Projetar novo atleta no espaço PCA
-    novo_scaled = scaler.transform([[forca, tecnica, guarda, passagem]])
-    novo = pca.transform(novo_scaled)
+    novo = scaler.transform([[
+        forca,
+        tecnica,
+        guarda,
+        passagem,
+        condicionamento,
+        tempo_reacao,
+        estrategia
+    ]])
 
-    # Gráfico
+    novo = pca.transform(novo)
+
     fig, ax = plt.subplots()
 
     sns.scatterplot(
@@ -182,13 +221,11 @@ def plot_pca(forca, tecnica, guarda, passagem):
     ax.scatter(
         novo[0][0],
         novo[0][1],
-        s=200,
-        color="red",
-        label="Atleta atual"
+        s=250,
+        marker="X"
     )
 
-    ax.legend()
-    ax.set_title("Mapa PCA - Perfil Técnico")
+    ax.set_title("Mapa PCA - Perfil Técnico BJJ")
 
     st.pyplot(fig)
 
@@ -434,7 +471,7 @@ if menu == "Nova Avaliação":
         with st.form("avaliacao"):
 
             for p in perguntas:
-                respostas.append(st.slider(p, 1, 5, 3))
+                respostas.append(st.slider(p, 0, 100, 50, step=5))
 
             submitted = st.form_submit_button("Finalizar Avaliação")
 
@@ -461,17 +498,17 @@ if menu == "Nova Avaliação":
 
             # salvar scores
             save_questionnaire([
-                int(len(get_scores_df()) + 1),
-                int(atleta_id),
-                float(forca),
-                float(tecnica),
-                float(guarda),
-                float(passagem),
-                0,
-                0,
-                0,
-                datetime.now().strftime("%Y-%m-%d")
-            ])
+    int(len(get_scores_df()) + 1),
+    int(atleta_id),
+    float(forca),
+    float(tecnica),
+    float(guarda),
+    float(passagem),
+    float(condicionamento),
+    float(tempo_reacao),
+    float(estrategia),
+    datetime.now().strftime("%Y-%m-%d")
+])
 
             st.success("Avaliação concluída!")
 
