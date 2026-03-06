@@ -348,3 +348,150 @@ if menu == "Nova Avaliação":
 # =====================================================
 # 9️⃣ CADASTRO
 # =====================================================
+# =====================================================
+# NOVA AVALIAÇÃO (FLUXO DINÂMICO)
+# =====================================================
+
+if "etapa" not in st.session_state:
+    st.session_state.etapa = 1
+
+
+if menu == "Nova Avaliação":
+
+    # -----------------------------
+    # ETAPA 1 — CADASTRO
+    # -----------------------------
+
+    if st.session_state.etapa == 1:
+
+        st.title("Nova Avaliação Técnica")
+
+        nome = st.text_input("Nome")
+        sobrenome = st.text_input("Sobrenome")
+
+        faixa = st.selectbox(
+            "Faixa atual",
+            ["Branca", "Azul", "Roxa", "Marrom", "Preta"]
+        )
+
+        tempo = st.number_input(
+            "Tempo de treino (meses)",
+            min_value=0
+        )
+
+        if st.button("Iniciar Avaliação"):
+
+            if nome and sobrenome:
+
+                st.session_state.nome = nome
+                st.session_state.sobrenome = sobrenome
+                st.session_state.faixa = faixa
+                st.session_state.tempo = tempo
+
+                st.session_state.etapa = 2
+                st.rerun()
+
+            else:
+                st.warning("Preencha nome e sobrenome.")
+
+
+    # -----------------------------
+    # ETAPA 2 — QUESTIONÁRIO
+    # -----------------------------
+
+    if st.session_state.etapa == 2:
+
+        st.title("Questionário Técnico")
+
+        perguntas = [
+            "Consigo manter pressão constante por 5 minutos.",
+            "Meu jogo depende bastante de força física.",
+            "Consigo finalizar apenas controlando posição.",
+            "Tenho facilidade em estabilizar montada ou 100kg.",
+            "Meu jogo melhora contra atletas menores.",
+
+            "Aplico golpes com mínimo gasto de energia.",
+            "Tenho variações técnicas para uma posição.",
+            "Corrijo detalhes técnicos com facilidade.",
+            "Finalizo mais por técnica do que explosão.",
+            "Meu timing é diferencial.",
+
+            "Prefiro puxar guarda.",
+            "Tenho múltiplas guardas ativas.",
+            "Raspo atletas da mesma faixa com frequência.",
+            "Me sinto confortável por baixo.",
+            "Finalizo da guarda com consistência.",
+
+            "Prefiro iniciar passando guarda.",
+            "Passo guarda sem explodir.",
+            "Uso pressão como estratégia.",
+            "Tenho controle forte em joelho na barriga.",
+            "Finalizo após passar guarda."
+        ]
+
+        respostas = []
+
+        with st.form("avaliacao"):
+
+            for p in perguntas:
+                respostas.append(st.slider(p, 1, 5, 3))
+
+            submitted = st.form_submit_button("Finalizar Avaliação")
+
+
+        if submitted:
+
+            forca, tecnica, guarda, passagem, score = calcular_scores(respostas)
+
+            faixa_estimada = estimar_faixa(
+                score,
+                st.session_state.tempo
+            )
+
+            # salvar atleta
+            add_athlete(
+                st.session_state.nome,
+                st.session_state.sobrenome,
+                st.session_state.faixa,
+                st.session_state.tempo
+            )
+
+            df = get_athletes()
+            atleta_id = df.iloc[-1]["athlete_id"]
+
+            # salvar scores
+            save_questionnaire([
+                int(len(get_scores_df()) + 1),
+                int(atleta_id),
+                float(forca),
+                float(tecnica),
+                float(guarda),
+                float(passagem),
+                0,
+                0,
+                0,
+                datetime.now().strftime("%Y-%m-%d")
+            ])
+
+            st.success("Avaliação concluída!")
+
+            st.write("Score:", round(score,2))
+            st.write("Faixa estimada:", faixa_estimada)
+
+            plot_pca(forca, tecnica, guarda, passagem)
+            plot_radar(forca, tecnica, guarda, passagem)
+            plot_correlation()
+
+            pdf = gerar_pdf(
+                st.session_state.nome,
+                score,
+                faixa_estimada
+            )
+
+            with open(pdf, "rb") as f:
+                st.download_button(
+                    "Baixar PDF",
+                    f,
+                    "Relatorio_BJJ.pdf"
+                )
+
