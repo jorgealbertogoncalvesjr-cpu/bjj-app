@@ -343,6 +343,7 @@ def plot_pca(
 def plot_perceptual_map():
 
     df = get_scores_df()
+    atletas = get_athletes()
 
     if len(df) < 2:
         st.warning("Dados insuficientes.")
@@ -356,7 +357,9 @@ def plot_perceptual_map():
         "condicionamento_score",
         "tempo_reacao_score",
         "estrategia_score"
-    ]].astype(float)
+    ]]
+
+    matriz = matriz.apply(pd.to_numeric, errors="coerce")
 
     scaler = StandardScaler()
     matriz_scaled = scaler.fit_transform(matriz)
@@ -364,20 +367,29 @@ def plot_perceptual_map():
     pca = PCA(n_components=2)
     componentes = pca.fit_transform(matriz_scaled)
 
-    fig, ax = plt.subplots(figsize=(8,6))
+    fig, ax = plt.subplots(figsize=(9,6))
 
     ax.scatter(
         componentes[:,0],
         componentes[:,1],
         color="steelblue",
-        s=80
+        s=100
     )
 
+    # adicionar nome do atleta
     for i in range(len(df)):
+
+        if i < len(atletas):
+
+            nome = atletas.iloc[i]["nome"]
+
+        else:
+            nome = f"A{i+1}"
+
         ax.text(
             componentes[i,0],
             componentes[i,1],
-            f"A{i+1}",
+            nome,
             fontsize=9
         )
 
@@ -385,6 +397,7 @@ def plot_perceptual_map():
     ax.axvline(0, linestyle="--", color="gray")
 
     ax.set_title("Mapa Perceptual — Perfil Técnico dos Atletas")
+
     ax.set_xlabel("Dimensão Técnica 1")
     ax.set_ylabel("Dimensão Técnica 2")
 
@@ -427,15 +440,21 @@ def plot_heatmap():
         "condicionamento_score",
         "tempo_reacao_score",
         "estrategia_score"
-    ]]
+    ]].copy()
 
-    fig, ax = plt.subplots(figsize=(8,4))
+    # converter para número corretamente
+    matriz = matriz.apply(pd.to_numeric, errors="coerce")
+
+    fig, ax = plt.subplots(figsize=(9,4))
 
     sns.heatmap(
         matriz,
         cmap="RdYlGn",
         annot=True,
-        linewidths=.5,
+        fmt=".0f",
+        linewidths=0.5,
+        vmin=0,
+        vmax=100,
         ax=ax
     )
 
