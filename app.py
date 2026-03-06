@@ -329,6 +329,7 @@ if menu == "Avaliação":
     st.title("Avaliação Técnica")
 
     df = get_athletes()
+
     if df.empty:
         st.warning("Nenhum atleta cadastrado.")
         st.stop()
@@ -339,6 +340,7 @@ if menu == "Avaliação":
     )
 
     atleta = df[(df["nome"] + " " + df["sobrenome"]) == atleta_nome].iloc[0]
+
     tempo = int(atleta["tempo_treino_meses"])
 
     perguntas = [
@@ -348,18 +350,21 @@ if menu == "Avaliação":
         "Consigo finalizar apenas controlando posição.",
         "Tenho facilidade em estabilizar montada ou 100kg.",
         "Meu jogo melhora contra atletas menores.",
+
         # Técnica
         "Aplico golpes com mínimo gasto de energia.",
         "Tenho variações técnicas para uma posição.",
         "Corrijo detalhes técnicos com facilidade.",
         "Finalizo mais por técnica do que explosão.",
         "Meu timing é diferencial.",
+
         # Guarda
         "Prefiro puxar guarda.",
         "Tenho múltiplas guardas ativas.",
         "Raspo atletas da mesma faixa com frequência.",
         "Me sinto confortável por baixo.",
         "Finalizo da guarda com consistência.",
+
         # Passagem
         "Prefiro iniciar passando guarda.",
         "Passo guarda sem explodir.",
@@ -370,46 +375,45 @@ if menu == "Avaliação":
 
     respostas = []
 
-   with st.form("avaliacao"):
+    with st.form("avaliacao"):
 
-    for p in perguntas:
-        respostas.append(int(st.slider(p, 1, 5, 3)))
+        for p in perguntas:
+            respostas.append(int(st.slider(p, 1, 5, 3)))
 
-    submitted = st.form_submit_button("Finalizar Avaliação")
+        submitted = st.form_submit_button("Finalizar Avaliação")
 
+    if submitted:
 
-if submitted:
+        forca, tecnica, guarda, passagem, score = calcular_scores(respostas)
 
-    forca, tecnica, guarda, passagem, score = calcular_scores(respostas)
+        faixa_estimada = estimar_faixa(score, tempo)
 
-    faixa_estimada = estimar_faixa(score, tempo)
+        st.success("Avaliação concluída!")
+        st.write("Score:", round(score, 2))
+        st.write("Faixa Estimada:", faixa_estimada)
 
-    st.success("Avaliação concluída!")
-    st.write("Score:", round(score, 2))
-    st.write("Faixa Estimada:", faixa_estimada)
+        save_questionnaire([
+            int(len(get_scores_df()) + 1),
+            int(atleta["athlete_id"]),
+            float(forca),
+            float(tecnica),
+            float(guarda),
+            float(passagem),
+            0,
+            0,
+            0,
+            datetime.now().strftime("%Y-%m-%d")
+        ])
 
-    save_questionnaire([
-        int(len(get_scores_df()) + 1),
-        int(atleta["athlete_id"]),
-        float(forca),
-        float(tecnica),
-        float(guarda),
-        float(passagem),
-        0,
-        0,
-        0,
-        datetime.now().strftime("%Y-%m-%d")
-    ])
+        plot_pca(forca, tecnica, guarda, passagem)
+        plot_radar(forca, tecnica, guarda, passagem)
+        plot_correlation()
 
-    plot_pca(forca, tecnica, guarda, passagem)
-    plot_radar(forca, tecnica, guarda, passagem)
-    plot_correlation()
+        pdf = gerar_pdf(atleta_nome, score, faixa_estimada)
 
-    pdf = gerar_pdf(atleta_nome, score, faixa_estimada)
-
-    with open(pdf, "rb") as f:
-        st.download_button(
-            "Baixar PDF",
-            f,
-            "Relatorio_BJJ.pdf"
-        )
+        with open(pdf, "rb") as f:
+            st.download_button(
+                "Baixar PDF",
+                f,
+                "Relatorio_BJJ.pdf"
+            )
