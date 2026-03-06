@@ -619,6 +619,22 @@ if menu == "Nova Avaliação":
             else:
                 st.warning("Preencha nome e sobrenome.")
 
+
+plot_pca(
+    forca,
+    tecnica,
+    guarda,
+    passagem,
+    condicionamento,
+    tempo_reacao,
+    estrategia
+)
+
+plot_perceptual_map()
+
+plot_heatmap()
+
+
 # -----------------------------
 # ETAPA 2 — QUESTIONÁRIO
 # -----------------------------
