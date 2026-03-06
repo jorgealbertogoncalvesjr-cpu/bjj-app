@@ -157,6 +157,24 @@ def estimar_faixa(score, tempo):
 
 
 # =====================================================
+# CLASSIFICAÇÃO DE PERFIL TÉCNICO
+# =====================================================
+
+def classificar_perfil(pc1, pc2):
+
+    if pc1 < 0 and pc2 > 0:
+        return "Guardeiro Técnico"
+
+    elif pc1 < 0 and pc2 <= 0:
+        return "Guardeiro Físico"
+
+    elif pc1 >= 0 and pc2 > 0:
+        return "Passador Técnico"
+
+    else:
+        return "Passador Pressão"
+
+# =====================================================
 # 6️⃣ FUNÇÕES GRÁFICAS
 # =====================================================
 
@@ -228,6 +246,8 @@ def plot_pca(
     ax.set_title("Mapa PCA - Perfil Técnico BJJ")
 
     st.pyplot(fig)
+
+return novo[0][0], novo[0][1]
 
 
 
@@ -515,7 +535,7 @@ if menu == "Nova Avaliação":
             st.write("Score:", round(score,2))
             st.write("Faixa estimada:", faixa_estimada)
 
-            plot_pca(
+            pc1, pc2 = plot_pca(
     forca,
     tecnica,
     guarda,
@@ -524,6 +544,21 @@ if menu == "Nova Avaliação":
     tempo_reacao,
     estrategia
 )
+perfil = classificar_perfil(pc1, pc2)
+
+st.subheader("Perfil Técnico Identificado")
+
+st.success(perfil)
+st.markdown(f"""
+### Perfil Técnico
+
+**{perfil}**
+
+Este perfil representa a tendência dominante do jogo do atleta
+considerando força, técnica, guarda e passagem.
+""")
+
+            
             plot_radar(forca, tecnica, guarda, passagem)
             plot_correlation()
 
