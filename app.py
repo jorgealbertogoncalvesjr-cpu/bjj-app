@@ -456,7 +456,7 @@ def draw_confidence_ellipse(x, y, ax, n_std=2.0):
     estrategia
 ):
 
-    df = get_scores_df()
+df = get_scores_df()
 
     if df.empty or len(df) < 2:
         st.warning("PCA requer mínimo 2 avaliações.")
@@ -543,7 +543,7 @@ def draw_confidence_ellipse(x, y, ax, n_std=2.0):
     return pc1,pc2
 
 
-    def plot_style_profile(pc1, pc2):
+def plot_style_profile(pc1, pc2):
 
     fig, ax = plt.subplots(figsize=(6,6))
 
@@ -573,7 +573,7 @@ def draw_confidence_ellipse(x, y, ax, n_std=2.0):
     st.pyplot(fig)
 
 
-    def plot_radar_comparativo(
+def plot_radar_comparativo(
 
     forca,
     tecnica,
