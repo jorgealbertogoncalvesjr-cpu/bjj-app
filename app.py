@@ -446,7 +446,7 @@ def draw_confidence_ellipse(x, y, ax, n_std=2.0):
     ellipse.set_transform(transf + ax.transData)
 
     ax.add_patch(ellipse)
-    def plot_pca(
+def plot_pca(
         forca,
         tecnica,
         guarda,
@@ -456,7 +456,7 @@ def draw_confidence_ellipse(x, y, ax, n_std=2.0):
         estrategia
 ):
 
-    df = get_scores_df()
+df = get_scores_df()
 
     if df.empty or len(df) < 2:
          st.warning("PCA requer mínimo 2 avaliações.")
@@ -480,8 +480,8 @@ def draw_confidence_ellipse(x, y, ax, n_std=2.0):
     pca = PCA(n_components=2)
     componentes = pca.fit_transform(matriz_scaled)
 
-    df["PC1"] = componentes[:,0]
-    df["PC2"] = componentes[:,1]
+df["PC1"] = componentes[:,0]
+df["PC2"] = componentes[:,1]
 
     novo = scaler.transform([[
 
