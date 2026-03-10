@@ -132,6 +132,27 @@ def calcular_scores(respostas):
     condicionamento = float(np.mean(respostas[12:15]))
     tempo_reacao = float(np.mean(respostas[15:18]))
     estrategia = float(np.mean(respostas[18:20]))
+
+    score_global = float(np.mean([
+        forca,
+        tecnica,
+        guarda,
+        passagem,
+        condicionamento,
+        tempo_reacao,
+        estrategia
+    ]))
+
+    return (
+        forca,
+        tecnica,
+        guarda,
+        passagem,
+        condicionamento,
+        tempo_reacao,
+        estrategia,
+        score_global
+    )
 st.divider()
 
 st.subheader("Ficha Técnica do Atleta")
@@ -224,7 +245,7 @@ def plot_pca(
 
     df = get_scores_df()
 
-    if len(df) < 2:
+    if df.empty or len(df) < 2:
         st.warning("PCA requer mínimo 2 avaliações.")
         return 0,0
 
@@ -892,11 +913,12 @@ with tab4:
 
     plot_perceptual_map(st.session_state.nome)
 
-            pdf = gerar_pdf(
-                st.session_state.nome,
-                score,
-                faixa_estimada
-            )
+
+pdf = gerar_pdf(
+    st.session_state.nome,
+    score,
+    faixa_estimada
+)
 
 
             with open(pdf, "rb") as f:
