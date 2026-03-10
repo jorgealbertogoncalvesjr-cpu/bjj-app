@@ -302,13 +302,11 @@ ax.set_title("Mapa Técnico do Atleta")
 ax.set_xlabel("PC1 — Guarda vs Passagem")
 ax.set_ylabel("PC2 — Técnica vs Força")
 
-    ax.legend()
+ax.legend()
+  
+st.pyplot(fig)
 
-
-    
-    st.pyplot(fig)
-
-    return pc1,pc2
+return pc1,pc2
 
     # -----------------------------
     # HISTÓRICO ATLETAS
