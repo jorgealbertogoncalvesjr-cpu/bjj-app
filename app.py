@@ -319,7 +319,7 @@ def plot_pca(
     ax.axhline(0, linestyle="--", color="gray")
     ax.axvline(0, linestyle="--", color="gray")
 
-    # histórico atletas
+        # histórico atletas
     ax.scatter(
         df["PC1"],
         df["PC2"],
@@ -329,11 +329,11 @@ def plot_pca(
         label="Base de atletas"
     )
 
-draw_confidence_ellipse(
-    df["PC1"],
-    df["PC2"],
-    ax
-)
+    draw_confidence_ellipse(
+        df["PC1"],
+        df["PC2"],
+        ax
+    )
 
     # atleta avaliado
     ax.scatter(
