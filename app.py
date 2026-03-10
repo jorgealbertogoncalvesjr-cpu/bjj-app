@@ -441,7 +441,6 @@ def gerar_diagnostico(
 
     ax.add_patch(ellipse)
 
-
     def plot_pca(
 
     forca,
