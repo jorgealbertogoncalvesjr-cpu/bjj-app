@@ -459,8 +459,8 @@ def draw_confidence_ellipse(x, y, ax, n_std=2.0):
 df = get_scores_df()
 
     if df.empty or len(df) < 2:
-        st.warning("PCA requer mínimo 2 avaliações.")
-        return 0, 0
+         st.warning("PCA requer mínimo 2 avaliações.")
+            return 0, 0
 
     matriz = df[[
 
