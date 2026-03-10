@@ -447,32 +447,32 @@ def draw_confidence_ellipse(x, y, ax, n_std=2.0):
 
     ax.add_patch(ellipse)
 def plot_pca(
-        forca,
-        tecnica,
-        guarda,
-        passagem,
-        condicionamento,
-        tempo_reacao,
-        estrategia
+    forca,
+    tecnica,
+    guarda,
+    passagem,
+    condicionamento,
+    tempo_reacao,
+    estrategia
 ):
 
-df = get_scores_df()
+    df = get_scores_df()
 
     if df.empty or len(df) < 2:
-         st.warning("PCA requer mínimo 2 avaliações.")
-            return 0, 0
+        st.warning("PCA requer mínimo 2 avaliações.")
+        return 0, 0
 
-    matriz = df[[
-
-        "forca_score",
-        "tecnica_score",
-        "guarda_score",
-        "passagem_score",
-        "condicionamento_score",
-        "tempo_reacao_score",
-        "estrategia_score"
-
-    ]].astype(float)
+    matriz = df[
+        [
+            "forca_score",
+            "tecnica_score",
+            "guarda_score",
+            "passagem_score",
+            "condicionamento_score",
+            "tempo_reacao_score",
+            "estrategia_score",
+        ]
+    ].astype(float)
 
     scaler = StandardScaler()
     matriz_scaled = scaler.fit_transform(matriz)
@@ -480,27 +480,27 @@ df = get_scores_df()
     pca = PCA(n_components=2)
     componentes = pca.fit_transform(matriz_scaled)
 
-df["PC1"] = componentes[:,0]
-df["PC2"] = componentes[:,1]
+    df["PC1"] = componentes[:, 0]
+    df["PC2"] = componentes[:, 1]
 
-    novo = scaler.transform([[
-
-        forca,
-        tecnica,
-        guarda,
-        passagem,
-        condicionamento,
-        tempo_reacao,
-        estrategia
-
-    ]])
+    novo = scaler.transform(
+        [[
+            forca,
+            tecnica,
+            guarda,
+            passagem,
+            condicionamento,
+            tempo_reacao,
+            estrategia
+        ]]
+    )
 
     novo = pca.transform(novo)
 
     pc1 = novo[0][0]
     pc2 = novo[0][1]
 
-    fig, ax = plt.subplots(figsize=(8,6))
+    fig, ax = plt.subplots(figsize=(8, 6))
 
     ax.grid(True, linestyle="--", alpha=0.4)
 
@@ -513,8 +513,10 @@ df["PC2"] = componentes[:,1]
         color="lightgray",
         alpha=0.6,
         s=80,
-        label="Base de atletas"
+        label="Base de atletas",
     )
+
+    return pc1, pc2
 
     draw_confidence_ellipse(df["PC1"], df["PC2"], ax)
 
