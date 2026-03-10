@@ -292,13 +292,15 @@ def plot_pca(
     )
 
     # nomes quadrantes
-    ax.text(2,2,"Ofensivo Técnico", fontsize=9)
+
+ax.text(2,2,"Ofensivo Técnico", fontsize=9)
 ax.text(-3,2,"Defensivo Técnico", fontsize=9)
 ax.text(2,-2,"Passador de Pressão", fontsize=9)
 ax.text(-3,-2,"Guardeiro Estratégico", fontsize=9)
-    ax.set_title("Mapa Técnico do Atleta")
-    ax.set_xlabel("PC1 — Guarda vs Passagem")
-    ax.set_ylabel("PC2 — Técnica vs Força")
+
+ax.set_title("Mapa Técnico do Atleta")
+ax.set_xlabel("PC1 — Guarda vs Passagem")
+ax.set_ylabel("PC2 — Técnica vs Força")
 
     ax.legend()
 
