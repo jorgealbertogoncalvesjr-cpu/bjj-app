@@ -447,7 +447,6 @@ def draw_confidence_ellipse(x, y, ax, n_std=2.0):
 
     ax.add_patch(ellipse)
     def plot_pca(
-
     forca,
     tecnica,
     guarda,
@@ -455,14 +454,13 @@ def draw_confidence_ellipse(x, y, ax, n_std=2.0):
     condicionamento,
     tempo_reacao,
     estrategia
-
 ):
 
     df = get_scores_df()
 
     if df.empty or len(df) < 2:
         st.warning("PCA requer mínimo 2 avaliações.")
-        return 0,0
+        return 0, 0
 
     matriz = df[[
 
