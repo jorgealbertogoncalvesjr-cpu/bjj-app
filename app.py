@@ -403,6 +403,8 @@ def gerar_diagnostico(
 
     def draw_confidence_ellipse(x, y, ax, n_std=2.0):
 
+    def draw_confidence_ellipse(x, y, ax, n_std=2.0):
+
     if len(x) < 2:
         return
 
@@ -415,8 +417,8 @@ def gerar_diagnostico(
 
     ellipse = Ellipse(
         (0,0),
-        width=ell_radius_x*2,
-        height=ell_radius_y*2,
+        width=ell_radius_x * 2,
+        height=ell_radius_y * 2,
         fill=False,
         linestyle="--",
         edgecolor="blue",
@@ -440,7 +442,6 @@ def gerar_diagnostico(
     ellipse.set_transform(transf + ax.transData)
 
     ax.add_patch(ellipse)
-
     def plot_pca(
 
     forca,
