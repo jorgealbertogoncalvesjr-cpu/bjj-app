@@ -18,6 +18,7 @@ from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import inch
 from reportlab.lib.styles import getSampleStyleSheet
 from sklearn.preprocessing import StandardScaler
+from matplotlib.patches import Ellipse
 
 # =====================================================
 # 2️⃣ CONFIGURAÇÃO
@@ -51,8 +52,14 @@ def connect_google():
 # =====================================================
 
 def get_athletes():
-    sheet = connect_google()
-    return pd.DataFrame(sheet.worksheet("athletes").get_all_records())
+
+    ws = connect_google().worksheet("athletes")
+    data = ws.get_all_records()
+
+    if len(data) == 0:
+        return pd.DataFrame()
+
+    return pd.DataFrame(data)
 
 def add_athlete(nome, sobrenome, faixa, tempo):
 
@@ -87,20 +94,6 @@ def get_scores_df():
         return pd.DataFrame()
 
     return pd.DataFrame(data)
-
-
-def add_athlete(nome, sobrenome, faixa, tempo):
-    ws = connect_google().worksheet("athletes")
-    athlete_id = len(ws.get_all_records()) + 1
-
-    ws.append_row([
-        int(athlete_id),
-        str(nome),
-        str(sobrenome),
-        str(faixa),
-        int(tempo),
-        datetime.now().strftime("%Y-%m-%d")
-    ])
 
 
 def save_questionnaire(data_row):
@@ -153,56 +146,46 @@ def calcular_scores(respostas):
         estrategia,
         score_global
     )
-st.divider()
-
-st.subheader("Ficha Técnica do Atleta")
-
-col1, col2, col3 = st.columns(3)
-
-with col1:
-    st.metric("Score Geral", round(score,1))
-
-with col2:
-    st.metric("Faixa Estimada", faixa_estimada)
-
-with col3:
-    st.metric("Perfil Técnico", perfil)
-
-
-    
-    score_global = float(np.mean([
-        forca,
-        tecnica,
-        guarda,
-        passagem,
-        condicionamento,
-        tempo_reacao,
-        estrategia
-    ]))
-
-    return (
-        forca,
-        tecnica,
-        guarda,
-        passagem,
-        condicionamento,
-        tempo_reacao,
-        estrategia,
-        score_global
-    )
 
 
 def estimar_faixa(score, tempo):
+
     if score >= 85 and tempo >= 66:
         return "Preta"
+
     elif score >= 70 and tempo >= 48:
         return "Marrom"
+
     elif score >= 55 and tempo >= 36:
         return "Roxa"
+
     elif score >= 40 and tempo >= 12:
         return "Azul"
+
     else:
         return "Branca"
+
+def calcular_bjj_score(
+    forca,
+    tecnica,
+    guarda,
+    passagem,
+    condicionamento,
+    tempo_reacao,
+    estrategia
+):
+
+    score = (
+        forca * 0.15 +
+        tecnica * 0.20 +
+        guarda * 0.15 +
+        passagem * 0.20 +
+        condicionamento * 0.10 +
+        tempo_reacao * 0.10 +
+        estrategia * 0.10
+    )
+
+    return round(score,2)
 
 
 # =====================================================
@@ -231,8 +214,51 @@ def classificar_perfil(pc1, pc2):
 # PCA MONEY STYLE
 # =====================================================
 
-from sklearn.preprocessing import StandardScaler
+def draw_confidence_ellipse(x, y, ax, n_std=2.0):
 
+    if len(x) < 2:
+        return
+
+    cov = np.cov(x, y)
+
+    if cov.shape != (2,2):
+        return
+
+    pearson = cov[0,1] / np.sqrt(cov[0,0] * cov[1,1])
+
+    ell_radius_x = np.sqrt(1 + pearson)
+    ell_radius_y = np.sqrt(1 - pearson)
+
+    ellipse = Ellipse(
+        (0,0),
+        width=ell_radius_x*2,
+        height=ell_radius_y*2,
+        fill=False,
+        linestyle="--",
+        edgecolor="blue",
+        linewidth=2,
+        label="Zona da Academia"
+    )
+
+    scale_x = np.sqrt(cov[0,0]) * n_std
+    scale_y = np.sqrt(cov[1,1]) * n_std
+
+    mean_x = np.mean(x)
+    mean_y = np.mean(y)
+
+    transf = (
+        plt.matplotlib.transforms.Affine2D()
+        .rotate_deg(45)
+        .scale(scale_x, scale_y)
+        .translate(mean_x, mean_y)
+    )
+
+    ellipse.set_transform(transf + ax.transData)
+
+    ax.add_patch(ellipse)
+
+
+from sklearn.preprocessing import StandardScaler
 def plot_pca(
     forca,
     tecnica,
@@ -299,8 +325,16 @@ def plot_pca(
         df["PC1"],
         df["PC2"],
         color="lightgray",
-        s=80
+        alpha=0.6,
+        s=80,
+        label="Base de atletas"
     )
+
+    draw_confidence_ellipse(
+    df["PC1"],
+    df["PC2"],
+    ax
+)
 
     # atleta avaliado
     ax.scatter(
@@ -313,55 +347,21 @@ def plot_pca(
     )
 
     # nomes quadrantes
+    ax.text(2,2,"Passador Técnico", fontsize=9)
+    ax.text(-3,2,"Guardeiro Técnico", fontsize=9)
+    ax.text(-3,-2,"Guardeiro Físico", fontsize=9)
+    ax.text(2,-2,"Passador Pressão", fontsize=9)
 
-ax.text(2,2,"Ofensivo Técnico", fontsize=9)
-ax.text(-3,2,"Defensivo Técnico", fontsize=9)
-ax.text(2,-2,"Passador de Pressão", fontsize=9)
-ax.text(-3,-2,"Guardeiro Estratégico", fontsize=9)
+    # estilo dashboard
+    ax.set_title("Mapa Técnico do Atleta — PCA Scouting", fontsize=14)
+    ax.set_xlabel("PC1 — Passagem vs Guarda")
+    ax.set_ylabel("PC2 — Técnica vs Força")
 
-ax.set_title("Mapa Técnico do Atleta")
-ax.set_xlabel("PC1 — Guarda vs Passagem")
-ax.set_ylabel("PC2 — Técnica vs Força")
+    ax.legend()
 
-ax.legend()
-  
-st.pyplot(fig)
+    st.pyplot(fig)
 
-return pc1,pc2
-
-    # -----------------------------
-    # HISTÓRICO ATLETAS
-    # -----------------------------
-
-    ax.scatter(
-        df["PC1"],
-        df["PC2"],
-        color="gray",
-        alpha=0.6,
-        s=60
-    )
-
-    # -----------------------------
-    # ATLETA ATUAL
-    # -----------------------------
-
-    ax.scatter(
-        pc1,
-        pc2,
-        color="red",
-        s=250,
-        marker="*",
-        label="Atleta Avaliado"
-    )
-
-    # -----------------------------
-    # NOMES DOS QUADRANTES
-    # -----------------------------
-
-    ax.text(2, 2, "Passador Técnico", fontsize=10)
-    ax.text(-3, 2, "Guardeiro Técnico", fontsize=10)
-    ax.text(-3, -2, "Guardeiro Físico", fontsize=10)
-    ax.text(2, -2, "Passador Pressão", fontsize=10)
+    return pc1,pc2
 
     # -----------------------------
     # ESTILO DASHBOARD
@@ -450,6 +450,36 @@ def plot_perceptual_map(atleta_nome=None):
     ax.legend()
 
     st.pyplot(fig)
+
+def plot_style_profile(pc1, pc2):
+
+    fig, ax = plt.subplots(figsize=(6,6))
+
+    ax.axhline(0, color="gray", linestyle="--")
+    ax.axvline(0, color="gray", linestyle="--")
+
+    ax.scatter(
+        pc1,
+        pc2,
+        s=300,
+        color="darkorange",
+        edgecolor="black"
+    )
+
+    ax.text(2,2,"Passador Técnico")
+    ax.text(-2,2,"Guardeiro Técnico")
+    ax.text(-2,-2,"Guardeiro Físico")
+    ax.text(2,-2,"Passador Pressão")
+
+    ax.set_title("BJJ Style Profile")
+
+    ax.set_xlabel("Passagem  ← →  Guarda")
+    ax.set_ylabel("Força  ← →  Técnica")
+
+    st.pyplot(fig)
+
+
+
 
 def plot_radar_comparativo(forca, tecnica, guarda, passagem):
 
@@ -598,13 +628,89 @@ def ranking_academia():
         ranking[["nome","score_total"]],
         use_container_width=True
     )
+def classificar_nivel(score):
 
+    if score >= 85:
+        return "Elite"
+
+    elif score >= 70:
+        return "Avançado"
+
+    elif score >= 55:
+        return "Intermediário"
+
+    else:
+        return "Iniciante"
 
 # =====================================================
 # 7️⃣ GERAÇÃO DE RELATÓRIO PDF
 # =====================================================
 
-def gerar_pdf(nome_atleta, score_global, faixa_estimada):
+def gerar_diagnostico(
+    forca,
+    tecnica,
+    guarda,
+    passagem,
+    condicionamento,
+    tempo_reacao,
+    estrategia
+):
+
+    pontos_fortes = []
+    melhorias = []
+    recomendacoes = []
+
+    # Pontos fortes
+    if tecnica >= 70:
+        pontos_fortes.append("Boa eficiência técnica.")
+
+    if passagem >= 70:
+        pontos_fortes.append("Passagem de guarda consistente.")
+
+    if guarda >= 70:
+        pontos_fortes.append("Jogo de guarda sólido.")
+
+    if estrategia >= 70:
+        pontos_fortes.append("Boa leitura estratégica da luta.")
+
+    # Oportunidades de melhoria
+    if guarda < 50:
+        melhorias.append("Desenvolver jogo de guarda.")
+
+    if condicionamento < 50:
+        melhorias.append("Melhorar condicionamento físico.")
+
+    if tempo_reacao < 50:
+        melhorias.append("Aprimorar tempo de reação.")
+
+    if estrategia < 50:
+        melhorias.append("Trabalhar tomada de decisão durante a luta.")
+
+    # Recomendações de treino
+    if guarda < 60:
+        recomendacoes.append("Treinar raspagens e retenção de guarda.")
+
+    if passagem < 60:
+        recomendacoes.append("Aprimorar sequências de passagem de guarda.")
+
+    if condicionamento < 60:
+        recomendacoes.append("Aumentar rounds de treino e drills de resistência.")
+
+    if tecnica < 60:
+        recomendacoes.append("Reforçar fundamentos técnicos.")
+
+    return pontos_fortes, melhorias, recomendacoes
+
+def gerar_pdf(
+    nome_atleta,
+    score_global,
+    bjj_score,
+    faixa_estimada,
+    perfil,
+    pontos_fortes,
+    melhorias,
+    recomendacoes
+):
 
     file_path = "relatorio_bjj.pdf"
 
@@ -617,14 +723,30 @@ def gerar_pdf(nome_atleta, score_global, faixa_estimada):
 
     elementos = []
 
+    # -------------------------------------------------
+    # TÍTULO
+    # -------------------------------------------------
+
     elementos.append(
-        Paragraph("Relatório Técnico BJJ", styles["Title"])
+        Paragraph("BJJ PERFORMANCE REPORT", styles["Title"])
     )
 
-    elementos.append(Spacer(1, 0.5 * inch))
+    elementos.append(Spacer(1,20))
+
+    # -------------------------------------------------
+    # PERFIL DO ATLETA
+    # -------------------------------------------------
 
     elementos.append(
-        Paragraph(f"Atleta: {nome_atleta}", styles["Normal"])
+        Paragraph("Perfil do Atleta", styles["Heading2"])
+    )
+
+    elementos.append(
+        Paragraph(f"Nome: {nome_atleta}", styles["Normal"])
+    )
+
+    elementos.append(
+        Paragraph(f"BJJ Performance Score: {bjj_score}/100", styles["Normal"])
     )
 
     elementos.append(
@@ -632,15 +754,85 @@ def gerar_pdf(nome_atleta, score_global, faixa_estimada):
     )
 
     elementos.append(
+        Paragraph(f"Perfil Técnico: {perfil}", styles["Normal"])
+    )
+
+    elementos.append(
         Paragraph(f"Faixa Estimada: {faixa_estimada}", styles["Normal"])
     )
 
-    elementos.append(Spacer(1, 0.5 * inch))
+    elementos.append(Spacer(1,20))
+
+    # -------------------------------------------------
+    # PONTOS FORTES
+    # -------------------------------------------------
+
+    elementos.append(
+        Paragraph("Pontos Fortes", styles["Heading2"])
+    )
+
+    for p in pontos_fortes:
+        elementos.append(
+            Paragraph(f"• {p}", styles["Normal"])
+        )
+
+    elementos.append(Spacer(1,20))
+
+    # -------------------------------------------------
+    # OPORTUNIDADES DE MELHORIA
+    # -------------------------------------------------
+
+    elementos.append(
+        Paragraph("Oportunidades de Melhoria", styles["Heading2"])
+    )
+
+    for m in melhorias:
+        elementos.append(
+            Paragraph(f"• {m}", styles["Normal"])
+        )
+
+    elementos.append(Spacer(1,20))
+
+    # -------------------------------------------------
+    # RECOMENDAÇÕES DE TREINO
+    # -------------------------------------------------
+
+    elementos.append(
+        Paragraph("Recomendação de Treino", styles["Heading2"])
+    )
+
+    for r in recomendacoes:
+        elementos.append(
+            Paragraph(f"• {r}", styles["Normal"])
+        )
+
+    elementos.append(Spacer(1,30))
+
+    # -------------------------------------------------
+    # CTA COMERCIAL
+    # -------------------------------------------------
+
+    elementos.append(
+        Paragraph("Treinamento Personalizado", styles["Heading2"])
+    )
 
     elementos.append(
         Paragraph(
-            "Este relatório foi gerado automaticamente com base nas respostas "
-            "do questionário técnico e no histórico de avaliações armazenadas.",
+            "Deseja evoluir mais rápido no Jiu-Jitsu?",
+            styles["Normal"]
+        )
+    )
+
+    elementos.append(
+        Paragraph(
+            "Entre em contato para aulas particulares com nossos professores.",
+            styles["Normal"]
+        )
+    )
+
+    elementos.append(
+        Paragraph(
+            "WhatsApp: (11) 9 8987-3132",
             styles["Normal"]
         )
     )
@@ -648,6 +840,8 @@ def gerar_pdf(nome_atleta, score_global, faixa_estimada):
     doc.build(elementos)
 
     return file_path
+
+
 # =====================================================
 # 8️⃣ MENU
 # =====================================================
@@ -795,6 +989,16 @@ if menu == "Nova Avaliação":
 
             forca, tecnica, guarda, passagem, condicionamento, tempo_reacao, estrategia, score = calcular_scores(respostas)
 
+            bjj_score = calcular_bjj_score(
+    forca,
+    tecnica,
+    guarda,
+    passagem,
+    condicionamento,
+    tempo_reacao,
+    estrategia
+)
+
             faixa_estimada = estimar_faixa(
                 score,
                 st.session_state.tempo
@@ -862,16 +1066,28 @@ if menu == "Nova Avaliação":
 
             st.success("Avaliação concluída!")
 
-            st.write("Score:", round(score, 2))
-            st.write("Faixa estimada:", faixa_estimada)
+st.divider()
+st.subheader("Ficha Técnica do Atleta")
+
+col1, col2, col3 = st.columns(3)
+
+with col1:
+    st.metric("Score Geral", round(score,1))
+
+with col2:
+    st.metric("BJJ Performance Score", f"{bjj_score}/100")
+
+with col3:
+    st.metric("Faixa Estimada", faixa_estimada)
 
 st.divider()
 
 st.subheader("Análise Técnica do Atleta")
 
-tab1, tab2, tab3, tab4 = st.tabs([
+tab1, tab2, tab3, tab4, tab5 = st.tabs([
     "Radar Técnico",
     "Scouting Map (PCA)",
+    "Style Profile",
     "Heatmap Academia",
     "Mapa Perceptual"
 ])
@@ -903,11 +1119,15 @@ with tab2:
 
 with tab3:
 
+    plot_style_profile(pc1,pc2)
+
+with tab4:
+
     st.caption("Mapa de intensidade das competências")
 
     plot_heatmap()
 
-with tab4:
+with tab5:
 
     st.caption("Associação perceptual entre atletas")
 
@@ -917,13 +1137,19 @@ with tab4:
 pdf = gerar_pdf(
     st.session_state.nome,
     score,
-    faixa_estimada
+    bjj_score,
+    faixa_estimada,
+    perfil,
+    pontos_fortes,
+    melhorias,
+    recomendacoes
 )
 
 
-            with open(pdf, "rb") as f:
-                st.download_button(
-                    "Baixar PDF",
-                    f,
-                    "Relatorio_BJJ.pdf"
-                )
+        with open(pdf, "rb") as f:
+
+    st.download_button(
+        "Baixar Relatório PDF",
+        f,
+        "BJJ_Performance_Report.pdf"
+    )
