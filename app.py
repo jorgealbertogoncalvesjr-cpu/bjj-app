@@ -484,7 +484,7 @@ def plot_radar_comparativo(
     tecnica,
     guarda,
     passagem
-)
+):
 
     df = get_scores_df()
 
