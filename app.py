@@ -1020,7 +1020,7 @@ if menu == "Nova Avaliação":
             # FUNÇÕES BANCO
             # =====================================================
 
-            def get_athletes():
+     
 
                 try:
 
@@ -1148,6 +1148,8 @@ pdf = gerar_pdf(
     recomendacoes
 )
 
+
+   with open(pdf, "rb") as f:
 
     st.download_button(
         "Baixar Relatório PDF",
