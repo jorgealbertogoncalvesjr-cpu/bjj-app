@@ -400,10 +400,14 @@ def gerar_diagnostico(
 
     return pontos_fortes, melhorias, recomendacoes
 
+# =====================================================
+# CONFIDENCE ELLIPSE
+# =====================================================
 
-    def draw_confidence_ellipse(x, y, ax, n_std=2.0):
+def draw_confidence_ellipse(x, y, ax, n_std=2.0):
 
-    def draw_confidence_ellipse(x, y, ax, n_std=2.0):
+    if len(x) < 2:
+        return
 
     if len(x) < 2:
         return
