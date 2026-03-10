@@ -258,7 +258,6 @@ def draw_confidence_ellipse(x, y, ax, n_std=2.0):
     ax.add_patch(ellipse)
 
 
-from sklearn.preprocessing import StandardScaler
 def plot_pca(
     forca,
     tecnica,
@@ -330,7 +329,7 @@ def plot_pca(
         label="Base de atletas"
     )
 
-    draw_confidence_ellipse(
+draw_confidence_ellipse(
     df["PC1"],
     df["PC2"],
     ax
@@ -480,8 +479,12 @@ def plot_style_profile(pc1, pc2):
 
 
 
-
-def plot_radar_comparativo(forca, tecnica, guarda, passagem):
+def plot_radar_comparativo(
+    forca,
+    tecnica,
+    guarda,
+    passagem
+)
 
     df = get_scores_df()
 
@@ -1145,8 +1148,6 @@ pdf = gerar_pdf(
     recomendacoes
 )
 
-
-        with open(pdf, "rb") as f:
 
     st.download_button(
         "Baixar Relatório PDF",
