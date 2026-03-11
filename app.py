@@ -525,7 +525,8 @@ def plot_pca(
         pc2,
         color="darkorange",
         edgecolor="black",
-        s=350 marker="*",
+        s=350,
+        marker="*",
         label="Atleta Avaliado"
     )
 
@@ -767,7 +768,8 @@ def plot_perceptual_map(atleta_nome=None):
                 x,
                 y,
                 color="darkorange",
-                s=350 marker="*",
+                s=350,
+                marker="*",
                 edgecolor="black",
                 label="Atleta Avaliado"
             )
