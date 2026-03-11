@@ -525,7 +525,8 @@ def plot_pca(
         pc2,
         color="darkorange",
         edgecolor="black",
-        s=250,
+        s=350
+marker="*",
         label="Atleta Avaliado"
     )
 
@@ -695,20 +696,20 @@ def plot_perceptual_map(atleta_nome=None):
     # FILTRO POR FAIXA
     # -------------------------------------------------
 
-    faixa_filtro = st.selectbox(
-        "Comparar com atletas da faixa:",
-        ["Todas","Branca","Azul","Roxa","Marrom","Preta"]
-    )
-
     if faixa_filtro != "Todas":
 
-        atletas = atletas[atletas["faixa"] == faixa_filtro]
+    atletas_filtrados = atletas[atletas["faixa"] == faixa_filtro]
 
-        df = df[df["athlete_id"].isin(atletas["athlete_id"])]
+    ids = atletas_filtrados["athlete_id"].tolist()
 
-        if len(df) < 2:
-            st.warning("Poucos atletas nesta faixa.")
-            return
+    df = df[df["athlete_id"].isin(ids)]
+
+    atletas = atletas_filtrados.reset_index(drop=True)
+    df = df.reset_index(drop=True)
+
+    if len(df) < 2:
+        st.warning("Poucos atletas nesta faixa.")
+        return
 
     # -------------------------------------------------
     # MATRIZ PCA
@@ -751,13 +752,24 @@ def plot_perceptual_map(atleta_nome=None):
         y = componentes[i,1]
 
         # atleta avaliado
-        if nome == atleta_nome:
+        athlete_id_avaliado = None
+
+        if atleta_nome is not None:
+            atleta_row = atletas[atletas["nome"] == atleta_nome]
+
+            if not atleta_row.empty:
+                athlete_id_avaliado = atleta_row.iloc[0]["athlete_id"]
+
+            if atletas.iloc[i]["athlete_id"] == athlete_id_avaliado:
+
+             
 
             ax.scatter(
                 x,
                 y,
                 color="darkorange",
-                s=250,
+                s=350
+marker="*",
                 edgecolor="black",
                 label="Atleta Avaliado"
             )
