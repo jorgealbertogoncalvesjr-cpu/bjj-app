@@ -579,6 +579,12 @@ def plot_radar_comparativo(forca, tecnica, guarda, passagem):
 
     df = get_scores_df()
 
+    if df.empty:
+        return
+
+    # converter para número
+    df = df.apply(pd.to_numeric, errors="ignore")
+
     df["forca_score"] = pd.to_numeric(df["forca_score"], errors="coerce")
     df["tecnica_score"] = pd.to_numeric(df["tecnica_score"], errors="coerce")
     df["guarda_score"] = pd.to_numeric(df["guarda_score"], errors="coerce")
