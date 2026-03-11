@@ -537,7 +537,10 @@ def plot_pca(
     ax.set_title("Mapa Técnico — PCA Scouting")
     ax.set_xlabel("Passagem ← → Guarda")
     ax.set_ylabel("Força ← → Técnica")
+    ax.set_xlim(-5,5)
+    ax.set_ylim(-5,5)
 
+    
     ax.legend()
 
     st.pyplot(fig)
@@ -549,17 +552,15 @@ def plot_style_profile(pc1, pc2):
 
     fig, ax = plt.subplots(figsize=(6,6))
 
-    ax.axhline(0, linestyle="--", color="gray")
-    ax.axvline(0, linestyle="--", color="gray")
+    ax.axhline(0, color="gray", linestyle="--")
+    ax.axvline(0, color="gray", linestyle="--")
 
     ax.scatter(
-
         pc1,
         pc2,
         s=300,
         color="darkorange",
         edgecolor="black"
-
     )
 
     ax.text(2,2,"Passador Técnico")
@@ -567,10 +568,14 @@ def plot_style_profile(pc1, pc2):
     ax.text(-2,-2,"Guardeiro Físico")
     ax.text(2,-2,"Passador Pressão")
 
+    # 🔑 LIMITAR ESCALA (evita imagem gigante)
+    ax.set_xlim(-5,5)
+    ax.set_ylim(-5,5)
+
     ax.set_title("BJJ Style Profile")
 
-    ax.set_xlabel("Passagem ← → Guarda")
-    ax.set_ylabel("Força ← → Técnica")
+    ax.set_xlabel("Passagem  ← →  Guarda")
+    ax.set_ylabel("Força  ← →  Técnica")
 
     st.pyplot(fig)
 
