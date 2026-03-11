@@ -575,28 +575,25 @@ def plot_style_profile(pc1, pc2):
     st.pyplot(fig)
 
 
-def plot_radar_comparativo(
-
-    forca,
-    tecnica,
-    guarda,
-    passagem
-
-):
+def plot_radar_comparativo(forca, tecnica, guarda, passagem):
 
     df = get_scores_df()
 
-df["forca_score"] = pd.to_numeric(df["forca_score"], errors="coerce")
-df["tecnica_score"] = pd.to_numeric(df["tecnica_score"], errors="coerce")
-df["guarda_score"] = pd.to_numeric(df["guarda_score"], errors="coerce")
-df["passagem_score"] = pd.to_numeric(df["passagem_score"], errors="coerce")
+    df["forca_score"] = pd.to_numeric(df["forca_score"], errors="coerce")
+    df["tecnica_score"] = pd.to_numeric(df["tecnica_score"], errors="coerce")
+    df["guarda_score"] = pd.to_numeric(df["guarda_score"], errors="coerce")
+    df["passagem_score"] = pd.to_numeric(df["passagem_score"], errors="coerce")
 
-media = [
-    df["forca_score"].mean(),
-    df["tecnica_score"].mean(),
-    df["guarda_score"].mean(),
-    df["passagem_score"].mean()
-]
+    categorias = ["Força","Técnica","Guarda","Passagem"]
+
+    atleta = [forca, tecnica, guarda, passagem]
+
+    media = [
+        df["forca_score"].mean(),
+        df["tecnica_score"].mean(),
+        df["guarda_score"].mean(),
+        df["passagem_score"].mean()
+    ]
 
     atleta += atleta[:1]
     media += media[:1]
@@ -613,6 +610,8 @@ media = [
 
     ax.set_xticks(angles[:-1])
     ax.set_xticklabels(categorias)
+
+    ax.set_ylim(0,100)
 
     ax.set_title("Radar Técnico Comparativo")
 
