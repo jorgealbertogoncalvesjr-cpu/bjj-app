@@ -709,7 +709,7 @@ if faixa_filtro != "Todas":
 
     if len(df) < 2:
         st.warning("Poucos atletas nesta faixa.")
-        return
+            return
 
     # -------------------------------------------------
     # MATRIZ PCA
