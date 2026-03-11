@@ -682,6 +682,45 @@ def plot_heatmap():
 
     st.pyplot(fig)
 
+def plot_perceptual_map(atleta_nome=None):
+
+    df = get_scores_df()
+    atletas = get_athletes()
+
+    if df.empty or len(df) < 2:
+        st.warning("Dados insuficientes.")
+        return
+
+    matriz = df[
+        [
+            "forca_score",
+            "tecnica_score",
+            "guarda_score",
+            "passagem_score",
+            "condicionamento_score",
+            "tempo_reacao_score",
+            "estrategia_score",
+        ]
+    ]
+
+    matriz = matriz.apply(pd.to_numeric, errors="coerce")
+
+    scaler = StandardScaler()
+    matriz_scaled = scaler.fit_transform(matriz)
+
+    pca = PCA(n_components=2)
+    componentes = pca.fit_transform(matriz_scaled)
+
+    fig, ax = plt.subplots(figsize=(9,6))
+
+    ax.scatter(componentes[:,0], componentes[:,1], color="steelblue")
+
+    ax.axhline(0, linestyle="--", color="gray")
+    ax.axvline(0, linestyle="--", color="gray")
+
+    ax.set_title("Mapa Perceptual — Perfil Técnico")
+
+    st.pyplot(fig)
 
 # =====================================================
 # 8️⃣ GERAÇÃO DE RELATÓRIO PDF
