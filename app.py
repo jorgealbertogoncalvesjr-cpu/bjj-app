@@ -710,6 +710,8 @@ def plot_perceptual_map(atleta_nome=None):
             return
 
  
+    def plot_perceptual_map(atleta_nome=None):
+
     # -------------------------------------------------
     # MATRIZ PCA
     # -------------------------------------------------
@@ -737,14 +739,14 @@ def plot_perceptual_map(atleta_nome=None):
     fig, ax = plt.subplots(figsize=(9,6))
 
     # descobrir ID do atleta avaliado
-athlete_id_avaliado = None
+    athlete_id_avaliado = None
 
-if atleta_nome is not None:
+    if atleta_nome is not None:
 
-    atleta_row = atletas[atletas["nome"] == atleta_nome]
+        atleta_row = atletas[atletas["nome"] == atleta_nome]
 
-    if not atleta_row.empty:
-        athlete_id_avaliado = atleta_row.iloc[0]["athlete_id"]
+        if not atleta_row.empty:
+            athlete_id_avaliado = atleta_row.iloc[0]["athlete_id"]
 
 
 # -------------------------------------------------
