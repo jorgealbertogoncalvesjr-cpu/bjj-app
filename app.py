@@ -586,18 +586,17 @@ def plot_radar_comparativo(
 
     df = get_scores_df()
 
-    categorias = ["Força","Técnica","Guarda","Passagem"]
+df["forca_score"] = pd.to_numeric(df["forca_score"], errors="coerce")
+df["tecnica_score"] = pd.to_numeric(df["tecnica_score"], errors="coerce")
+df["guarda_score"] = pd.to_numeric(df["guarda_score"], errors="coerce")
+df["passagem_score"] = pd.to_numeric(df["passagem_score"], errors="coerce")
 
-    atleta = [forca, tecnica, guarda, passagem]
-
-    media = [
-
-        df["forca_score"].mean(),
-        df["tecnica_score"].mean(),
-        df["guarda_score"].mean(),
-        df["passagem_score"].mean()
-
-    ]
+media = [
+    df["forca_score"].mean(),
+    df["tecnica_score"].mean(),
+    df["guarda_score"].mean(),
+    df["passagem_score"].mean()
+]
 
     atleta += atleta[:1]
     media += media[:1]
