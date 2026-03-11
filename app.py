@@ -691,6 +691,29 @@ def plot_perceptual_map(atleta_nome=None):
         st.warning("Dados insuficientes.")
         return
 
+    # -------------------------------------------------
+    # FILTRO POR FAIXA
+    # -------------------------------------------------
+
+    faixa_filtro = st.selectbox(
+        "Comparar com atletas da faixa:",
+        ["Todas","Branca","Azul","Roxa","Marrom","Preta"]
+    )
+
+    if faixa_filtro != "Todas":
+
+        atletas = atletas[atletas["faixa"] == faixa_filtro]
+
+        df = df[df["athlete_id"].isin(atletas["athlete_id"])]
+
+        if len(df) < 2:
+            st.warning("Poucos atletas nesta faixa.")
+            return
+
+    # -------------------------------------------------
+    # MATRIZ PCA
+    # -------------------------------------------------
+
     matriz = df[
         [
             "forca_score",
@@ -713,12 +736,61 @@ def plot_perceptual_map(atleta_nome=None):
 
     fig, ax = plt.subplots(figsize=(9,6))
 
-    ax.scatter(componentes[:,0], componentes[:,1], color="steelblue")
+    # -------------------------------------------------
+    # PLOT DOS ATLETAS
+    # -------------------------------------------------
+
+    for i in range(len(componentes)):
+
+        if i < len(atletas):
+            nome = atletas.iloc[i]["nome"]
+        else:
+            nome = f"A{i}"
+
+        x = componentes[i,0]
+        y = componentes[i,1]
+
+        # atleta avaliado
+        if nome == atleta_nome:
+
+            ax.scatter(
+                x,
+                y,
+                color="darkorange",
+                s=250,
+                edgecolor="black",
+                label="Atleta Avaliado"
+            )
+
+        else:
+
+            ax.scatter(
+                x,
+                y,
+                color="steelblue",
+                s=90,
+                alpha=0.7,
+                label="Base da Academia"
+            )
+
+        ax.text(x, y, nome, fontsize=9)
+
+    # -------------------------------------------------
+    # EIXOS
+    # -------------------------------------------------
 
     ax.axhline(0, linestyle="--", color="gray")
     ax.axvline(0, linestyle="--", color="gray")
 
-    ax.set_title("Mapa Perceptual — Perfil Técnico")
+    ax.set_title("Mapa Perceptual — Perfil Técnico dos Atletas")
+
+    ax.set_xlabel("Dimensão Técnica 1")
+    ax.set_ylabel("Dimensão Técnica 2")
+
+    # evitar legenda duplicada
+    handles, labels = ax.get_legend_handles_labels()
+    by_label = dict(zip(labels, handles))
+    ax.legend(by_label.values(), by_label.keys())
 
     st.pyplot(fig)
 
