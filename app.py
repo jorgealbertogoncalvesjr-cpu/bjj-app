@@ -688,28 +688,26 @@ def plot_perceptual_map(atleta_nome=None):
     df = get_scores_df()
     atletas = get_athletes()
 
-    if df.empty or len(df) < 2:
-        st.warning("Dados insuficientes.")
-        return
+    faixa_filtro = st.selectbox(
+        "Comparar com atletas da faixa:",
+        ["Todas","Branca","Azul","Roxa","Marrom","Preta"]
+    )
 
-# -------------------------------------------------
     # FILTRO POR FAIXA
-# -------------------------------------------------
+    if faixa_filtro != "Todas":
 
-if faixa_filtro != "Todas":
+        atletas_filtrados = atletas[atletas["faixa"] == faixa_filtro]
 
-    atletas_filtrados = atletas[atletas["faixa"] == faixa_filtro]
+        ids = atletas_filtrados["athlete_id"].tolist()
 
-    ids = atletas_filtrados["athlete_id"].tolist()
+        df = df[df["athlete_id"].isin(ids)]
 
-    df = df[df["athlete_id"].isin(ids)]
+        atletas = atletas_filtrados.reset_index(drop=True)
+        df = df.reset_index(drop=True)
 
-    atletas = atletas_filtrados.reset_index(drop=True)
-    df = df.reset_index(drop=True)
-
-    if len(df) < 2:
-        st.warning("Poucos atletas nesta faixa.")
-        return
+        if len(df) < 2:
+            st.warning("Poucos atletas nesta faixa.")
+            return
 
  
     # -------------------------------------------------
