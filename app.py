@@ -692,8 +692,8 @@ def plot_perceptual_map(atleta_nome=None):
         st.warning("Dados insuficientes.")
         return
 
- 
-# FILTRO POR FAIXA
+# -------------------------------------------------
+    # FILTRO POR FAIXA
 # -------------------------------------------------
 
 if faixa_filtro != "Todas":
@@ -711,6 +711,7 @@ if faixa_filtro != "Todas":
         st.warning("Poucos atletas nesta faixa.")
         return
 
+ 
     # -------------------------------------------------
     # MATRIZ PCA
     # -------------------------------------------------
