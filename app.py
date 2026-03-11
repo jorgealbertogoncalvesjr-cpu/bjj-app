@@ -692,11 +692,11 @@ def plot_perceptual_map(atleta_nome=None):
         st.warning("Dados insuficientes.")
         return
 
-    # -------------------------------------------------
-    # FILTRO POR FAIXA
-    # -------------------------------------------------
+ 
+# FILTRO POR FAIXA
+# -------------------------------------------------
 
-    if faixa_filtro != "Todas":
+if faixa_filtro != "Todas":
 
     atletas_filtrados = atletas[atletas["faixa"] == faixa_filtro]
 
