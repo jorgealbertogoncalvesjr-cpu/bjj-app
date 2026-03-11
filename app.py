@@ -737,55 +737,55 @@ if faixa_filtro != "Todas":
 
     fig, ax = plt.subplots(figsize=(9,6))
 
-    # -------------------------------------------------
-    # PLOT DOS ATLETAS
-    # -------------------------------------------------
+    # descobrir ID do atleta avaliado
+athlete_id_avaliado = None
 
-    for i in range(len(componentes)):
+if atleta_nome is not None:
 
-        if i < len(atletas):
-            nome = atletas.iloc[i]["nome"]
-        else:
-            nome = f"A{i}"
+    atleta_row = atletas[atletas["nome"] == atleta_nome]
 
-        x = componentes[i,0]
-        y = componentes[i,1]
+    if not atleta_row.empty:
+        athlete_id_avaliado = atleta_row.iloc[0]["athlete_id"]
 
-        # atleta avaliado
-        athlete_id_avaliado = None
 
-        if atleta_nome is not None:
-            atleta_row = atletas[atletas["nome"] == atleta_nome]
+# -------------------------------------------------
+# PLOT DOS ATLETAS
+# -------------------------------------------------
 
-            if not atleta_row.empty:
-                athlete_id_avaliado = atleta_row.iloc[0]["athlete_id"]
+for i in range(len(componentes)):
 
-            if atletas.iloc[i]["athlete_id"] == athlete_id_avaliado:
+    if i < len(atletas):
+        nome = atletas.iloc[i]["nome"]
+    else:
+        nome = f"A{i}"
 
-             
+    x = componentes[i,0]
+    y = componentes[i,1]
 
-            ax.scatter(
-                x,
-                y,
-                color="darkorange",
-                s=350,
-                marker="*",
-                edgecolor="black",
-                label="Atleta Avaliado"
-            )
+    if atletas.iloc[i]["athlete_id"] == athlete_id_avaliado:
 
-        else:
+        ax.scatter(
+            x,
+            y,
+            color="darkorange",
+            s=350,
+            marker="*",
+            edgecolor="black",
+            label="Atleta Avaliado"
+        )
 
-            ax.scatter(
-                x,
-                y,
-                color="steelblue",
-                s=90,
-                alpha=0.7,
-                label="Base da Academia"
-            )
+    else:
 
-        ax.text(x, y, nome, fontsize=9)
+        ax.scatter(
+            x,
+            y,
+            color="steelblue",
+            s=90,
+            alpha=0.7,
+            label="Base da Academia"
+        )
+
+    ax.text(x, y, nome, fontsize=9)
 
     # -------------------------------------------------
     # EIXOS
