@@ -306,7 +306,7 @@ def estimar_faixa(score, tempo):
 
 def classificar_nivel(score):
 
-    if score >= 85:
+if score >= 85:
     return "Elite"
 elif 70 <= score < 85:
     return "Avançado"
