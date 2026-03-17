@@ -336,9 +336,7 @@ def classificar_perfil(pc1, pc2):
 # 6️⃣ DIAGNÓSTICO AUTOMÁTICO
 # =====================================================
 
-def gerar_diagnostico(...):
-
-
+def gerar_diagnostico(
     forca,
     tecnica,
     guarda,
@@ -346,7 +344,6 @@ def gerar_diagnostico(...):
     condicionamento,
     tempo_reacao,
     estrategia
-
 ):
 
     pontos_fortes = []
