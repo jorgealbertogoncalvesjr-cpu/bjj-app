@@ -1189,7 +1189,7 @@ pc1, pc2 = plot_pca(
 
 perfil = classificar_perfil(pc1, pc2)
 
-    pontos_fortes, melhorias, recomendacoes = gerar_diagnostico(
+pontos_fortes, melhorias, recomendacoes = gerar_diagnostico(
         forca, tecnica, guarda, passagem,
         condicionamento, tempo_reacao, estrategia
     )
