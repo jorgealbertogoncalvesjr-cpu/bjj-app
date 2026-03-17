@@ -507,9 +507,15 @@ def plot_pca(
     ax.axhline(0, linestyle="--", color="gray")
     ax.axvline(0, linestyle="--", color="gray")
 
-def plot_pca(...):
-
-    ...
+def plot_pca(
+    forca,
+    tecnica,
+    guarda,
+    passagem,
+    condicionamento,
+    tempo_reacao,
+    estrategia
+):
 
     ax.scatter(
         df["PC1"],
