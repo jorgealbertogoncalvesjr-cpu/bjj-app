@@ -1198,8 +1198,8 @@ pontos_fortes, melhorias, recomendacoes = gerar_diagnostico(
     # FICHA TÉCNICA
     # -----------------------------
 
-    st.divider()
-    st.subheader("Ficha Técnica do Atleta")
+st.divider()
+st.subheader("Ficha Técnica do Atleta")
 
     col1, col2, col3 = st.columns(3)
 
@@ -1216,8 +1216,8 @@ pontos_fortes, melhorias, recomendacoes = gerar_diagnostico(
     # TABS
     # -----------------------------
 
-    st.divider()
-    st.subheader("Análise Técnica")
+st.divider()
+st.subheader("Análise Técnica")
 
     tab1,tab2,tab3,tab4,tab5 = st.tabs([
         "Radar Técnico",
