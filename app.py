@@ -1203,14 +1203,14 @@ st.subheader("Ficha Técnica do Atleta")
 
 col1, col2, col3 = st.columns(3)
 
-    with col1:
-        st.metric("BJJ Score", f"{bjj_score}/100")
+with col1:
+    st.metric("BJJ Score", f"{bjj_score}/100")
 
-    with col2:
-        st.metric("Score Global", round(score,2))
+with col2:
+    st.metric("Score Global", round(score,2))
 
-    with col3:
-        st.metric("Faixa Estimada", faixa_estimada)
+with col3:
+    st.metric("Faixa Estimada", faixa_estimada)
 
     # -----------------------------
     # TABS
