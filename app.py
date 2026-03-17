@@ -739,12 +739,14 @@ def plot_heatmap():
 
  
     def plot_perceptual_map(atleta_nome=None):
+        df = get_scores_df()
+        atletas = get_athletes()
 
     # -------------------------------------------------
     # MATRIZ PCA
     # -------------------------------------------------
 
-        matriz = df[
+    matriz = df[
             [
                 "forca_score",
                 "tecnica_score",
