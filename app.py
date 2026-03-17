@@ -479,40 +479,25 @@ def plot_pca(
     df["PC1"] = componentes[:, 0]
     df["PC2"] = componentes[:, 1]
 
-    novo = scaler.transform(
-        [[
-            forca,
-            tecnica,
-            guarda,
-            passagem,
-            condicionamento,
-            tempo_reacao,
-            estrategia
-        ]]
-    )
+    novo = scaler.transform([[
+        forca,
+        tecnica,
+        guarda,
+        passagem,
+        condicionamento,
+        tempo_reacao,
+        estrategia
+    ]])
 
     novo = pca.transform(novo)
 
     pc1 = novo[0][0]
     pc2 = novo[0][1]
 
+    # 🎯 CRIA FIGURA
     fig, ax = plt.subplots(figsize=(8, 6))
 
-    ax.grid(True, linestyle="--", alpha=0.4)
-
-    ax.axhline(0, linestyle="--", color="gray")
-    ax.axvline(0, linestyle="--", color="gray")
-
-def plot_pca(
-    forca,
-    tecnica,
-    guarda,
-    passagem,
-    condicionamento,
-    tempo_reacao,
-    estrategia
-):
-
+    # BASE
     ax.scatter(
         df["PC1"],
         df["PC2"],
@@ -522,8 +507,7 @@ def plot_pca(
         label="Base de atletas",
     )
 
-    draw_confidence_ellipse(df["PC1"], df["PC2"], ax)
-
+    # ATLETA
     ax.scatter(
         pc1,
         pc2,
@@ -534,43 +518,23 @@ def plot_pca(
         label="Atleta Avaliado"
     )
 
-    ax.legend()
+    # GRID + EIXOS
+    ax.grid(True, linestyle="--", alpha=0.4)
+    ax.axhline(0, linestyle="--", color="gray")
+    ax.axvline(0, linestyle="--", color="gray")
 
-    st.pyplot(fig)
-
-    return pc1, pc2
-
-    draw_confidence_ellipse(df["PC1"], df["PC2"], ax)
-    
-    ax.scatter(
-        pc1,
-        pc2,
-        color="darkorange",
-        edgecolor="black",
-        s=350,
-        marker="*",
-        label="Atleta Avaliado"
-    )
-    
-    # TEXTOS (ANTES DO PLOT)
-    ax.text(2,2,"Passador Técnico")
-    ax.text(-3,2,"Guardeiro Técnico")
-    ax.text(-3,-2,"Guardeiro Físico")
-    ax.text(2,-2,"Passador Pressão")
-    
-    # CONFIG DO GRÁFICO
+    # LABELS
     ax.set_title("Mapa Técnico — PCA Scouting")
     ax.set_xlabel("Passagem ← → Guarda")
     ax.set_ylabel("Força ← → Técnica")
     ax.set_xlim(-5,5)
     ax.set_ylim(-5,5)
-    
-    # FINALIZAÇÃO
+
     ax.legend()
-    
+
     st.pyplot(fig)
-    
-    return pc1, pc2   
+
+    return pc1, pc2  
 
 def plot_style_profile(pc1, pc2):
 
