@@ -544,7 +544,7 @@ def plot_pca(
 
     return pc1, pc2
 
-    draw_confidence_ellipse(df["PC1"], df["PC2"], ax)
+ draw_confidence_ellipse(df["PC1"], df["PC2"], ax)
 
 ax.scatter(
     pc1,
@@ -556,30 +556,25 @@ ax.scatter(
     label="Atleta Avaliado"
 )
 
+# TEXTOS (ANTES DO PLOT)
+ax.text(2,2,"Passador Técnico")
+ax.text(-3,2,"Guardeiro Técnico")
+ax.text(-3,-2,"Guardeiro Físico")
+ax.text(2,-2,"Passador Pressão")
+
+# CONFIG DO GRÁFICO
+ax.set_title("Mapa Técnico — PCA Scouting")
+ax.set_xlabel("Passagem ← → Guarda")
+ax.set_ylabel("Força ← → Técnica")
+ax.set_xlim(-5,5)
+ax.set_ylim(-5,5)
+
+# FINALIZAÇÃO
 ax.legend()
 
 st.pyplot(fig)
 
-
-
-    ax.text(2,2,"Passador Técnico")
-    ax.text(-3,2,"Guardeiro Técnico")
-    ax.text(-3,-2,"Guardeiro Físico")
-    ax.text(2,-2,"Passador Pressão")
-
-    ax.set_title("Mapa Técnico — PCA Scouting")
-    ax.set_xlabel("Passagem ← → Guarda")
-    ax.set_ylabel("Força ← → Técnica")
-    ax.set_xlim(-5,5)
-    ax.set_ylim(-5,5)
-
-    
-    ax.legend()
-
-    st.pyplot(fig)
-
-    return pc1,pc2
-
+return pc1, pc2   
 
 def plot_style_profile(pc1, pc2):
 
