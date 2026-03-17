@@ -1187,7 +1187,7 @@ pc1, pc2 = plot_pca(
         condicionamento, tempo_reacao, estrategia
     )
 
-    perfil = classificar_perfil(pc1, pc2)
+perfil = classificar_perfil(pc1, pc2)
 
     pontos_fortes, melhorias, recomendacoes = gerar_diagnostico(
         forca, tecnica, guarda, passagem,
