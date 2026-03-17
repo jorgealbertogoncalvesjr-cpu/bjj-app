@@ -1219,31 +1219,31 @@ with col3:
 st.divider()
 st.subheader("Análise Técnica")
 
-    tab1,tab2,tab3,tab4,tab5 = st.tabs([
-        "Radar Técnico",
-        "Scouting Map",
-        "Style Profile",
-        "Heatmap Academia",
-        "Mapa Perceptual"
-    ])
+tab1,tab2,tab3,tab4,tab5 = st.tabs([
+    "Radar Técnico",
+    "Scouting Map",
+    "Style Profile",
+    "Heatmap Academia",
+    "Mapa Perceptual"
+])
 
-    with tab1:
-        plot_radar_comparativo(forca, tecnica, guarda, passagem)
+with tab1:
+    plot_radar_comparativo(forca, tecnica, guarda, passagem)
 
-    with tab2:
-        plot_pca(
-        forca, tecnica, guarda, passagem,
-        condicionamento, tempo_reacao, estrategia
-        )
+with tab2:
+    plot_pca(
+    forca, tecnica, guarda, passagem,
+    condicionamento, tempo_reacao, estrategia
+    )
 
-    with tab3:
-        plot_style_profile(pc1, pc2)
+with tab3:
+    plot_style_profile(pc1, pc2)
 
-    with tab4:
-        plot_heatmap()
+with tab4:
+    plot_heatmap()
 
-    with tab5:
-        plot_perceptual_map(st.session_state.nome)
+with tab5:
+    plot_perceptual_map(st.session_state.nome)
 
     # -----------------------------
     # PDF
