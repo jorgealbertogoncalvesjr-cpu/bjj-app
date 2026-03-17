@@ -1124,7 +1124,7 @@ if menu == "Nova Avaliação":
 
         if submitted:
 
-    forca, tecnica, guarda, passagem, condicionamento, tempo_reacao, estrategia, score = calcular_scores(respostas)
+            forca, tecnica, guarda, passagem, condicionamento, tempo_reacao, estrategia, score = calcular_scores(respostas)
 
     bjj_score = calcular_bjj_score(
         forca, tecnica, guarda, passagem,
