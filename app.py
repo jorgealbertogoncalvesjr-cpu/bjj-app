@@ -560,7 +560,7 @@ ax.legend()
 
 st.pyplot(fig)
 
-return pc1, pc2
+
 
     ax.text(2,2,"Passador Técnico")
     ax.text(-3,2,"Guardeiro Técnico")
