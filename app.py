@@ -1176,7 +1176,7 @@ st.write("Faixa estimada:", faixa_estimada)
 st.divider()
 
     # KPI PRINCIPAL
-    st.metric("BJJ Performance Score", f"{bjj_score}/100")
+        st.metric("BJJ Performance Score", f"{bjj_score}/100")
 
     # -----------------------------
     # PCA + PERFIL
