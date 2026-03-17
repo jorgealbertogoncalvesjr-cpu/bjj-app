@@ -1129,8 +1129,15 @@ if menu == "Nova Avaliação":
 
             forca, tecnica, guarda, passagem, condicionamento, tempo_reacao, estrategia, score = calcular_scores(respostas)
 
-    bjj_score = calcular_bjj_score(
-        forca, tecnica, guarda, passagem, condicionamento, tempo_reacao, estrategia)
+bjj_score = calcular_bjj_score(
+    forca,
+    tecnica,
+    guarda,
+    passagem,
+    condicionamento,
+    tempo_reacao,
+    estrategia
+)
 
     faixa_estimada = estimar_faixa(score, st.session_state.tempo)
 
