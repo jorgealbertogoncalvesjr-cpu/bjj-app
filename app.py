@@ -1141,7 +1141,7 @@ bjj_score = calcular_bjj_score(
 
 faixa_estimada = estimar_faixa(score, st.session_state.tempo)
 
-    add_athlete(
+add_athlete(
         st.session_state.nome,
         st.session_state.sobrenome,
         st.session_state.faixa,
