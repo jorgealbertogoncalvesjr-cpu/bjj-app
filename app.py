@@ -691,7 +691,7 @@ def plot_heatmap():
             nomes.append(f"A{i}")
     
    if len(nomes) == len(matriz):
-            matriz.index = nomes
+        matriz.index = nomes
 
     fig, ax = plt.subplots(figsize=(10,5))
 
