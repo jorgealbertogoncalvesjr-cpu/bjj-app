@@ -1170,10 +1170,10 @@ st.success("Avaliação concluída!")
     # RESULTADOS
     # -----------------------------
 
-    st.write("Score:", round(score, 2))
-    st.write("Faixa estimada:", faixa_estimada)
+st.write("Score:", round(score, 2))
+st.write("Faixa estimada:", faixa_estimada)
 
-    st.divider()
+st.divider()
 
     # KPI PRINCIPAL
     st.metric("BJJ Performance Score", f"{bjj_score}/100")
