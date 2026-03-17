@@ -784,7 +784,7 @@ def plot_heatmap():
 # -------------------------------------------------
 
 
-    for i in range(len(componentes)):
+for i in range(len(componentes)):
 
     if i < len(atletas):
         nome = atletas.iloc[i]["nome"]
