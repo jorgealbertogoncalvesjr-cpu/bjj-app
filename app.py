@@ -190,7 +190,7 @@ def get_athlete_history(athlete_id):
         return pd.DataFrame()
 
     if "data" in df.columns:
-    df["data"] = pd.to_datetime(df["data"])
+        df["data"] = pd.to_datetime(df["data"])
 
     df["score_total"] = df[[
 
