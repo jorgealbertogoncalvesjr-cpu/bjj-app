@@ -414,7 +414,7 @@ def draw_confidence_ellipse(x, y, ax, n_std=2.0):
 if den == 0:
     return
 
-pearson = cov[0,1] / den
+    pearson = cov[0,1] / den
 
     ell_radius_x = np.sqrt(1 + pearson)
     ell_radius_y = np.sqrt(1 - pearson)
