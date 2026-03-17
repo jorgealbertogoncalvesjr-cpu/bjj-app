@@ -210,13 +210,7 @@ def get_athlete_history(athlete_id):
 # 5️⃣ FUNÇÕES ANALÍTICAS
 # =====================================================
 
-if submitted:
-
-    if len(respostas) < 20:
-        st.warning("Complete o questionário.")
-        return
-
-   def calcular_scores(respostas):
+def calcular_scores(respostas):
 
     forca = float(np.mean(respostas[0:3]))
     tecnica = float(np.mean(respostas[3:6]))
@@ -227,7 +221,6 @@ if submitted:
     estrategia = float(np.mean(respostas[18:20]))
 
     score_global = float(np.mean([
-
         forca,
         tecnica,
         guarda,
@@ -235,7 +228,6 @@ if submitted:
         condicionamento,
         tempo_reacao,
         estrategia
-
     ]))
 
     return (
