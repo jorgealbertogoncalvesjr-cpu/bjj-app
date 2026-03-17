@@ -1148,7 +1148,7 @@ add_athlete(
         st.session_state.tempo
     )
 
-    df = get_athletes()
+df = get_athletes()
     atleta_id = df.iloc[-1]["athlete_id"]
 
     save_questionnaire([
