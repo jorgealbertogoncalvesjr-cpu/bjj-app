@@ -401,6 +401,7 @@ def gerar_diagnostico(
 # CONFIDENCE ELLIPSE
 # =====================================================
 
+
 def draw_confidence_ellipse(x, y, ax, n_std=2.0):
 
     if len(x) < 2:
@@ -411,8 +412,8 @@ def draw_confidence_ellipse(x, y, ax, n_std=2.0):
 
     den = np.sqrt(cov[0,0] * cov[1,1])
 
-if den == 0:
-    return
+    if den == 0:
+        return
 
     pearson = cov[0,1] / den
 
