@@ -507,17 +507,17 @@ def plot_pca(
     ax.axhline(0, linestyle="--", color="gray")
     ax.axvline(0, linestyle="--", color="gray")
 
-    def plot_pca(...):
+def plot_pca(...):
 
     ...
 
-        ax.scatter(
-            df["PC1"],
-            df["PC2"],
-            color="lightgray",
-            alpha=0.6,
-            s=80,
-            label="Base de atletas",
+    ax.scatter(
+        df["PC1"],
+        df["PC2"],
+        color="lightgray",
+        alpha=0.6,
+        s=80,
+        label="Base de atletas",
     )
 
     draw_confidence_ellipse(df["PC1"], df["PC2"], ax)
