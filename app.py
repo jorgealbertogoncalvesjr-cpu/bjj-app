@@ -210,9 +210,14 @@ def get_athlete_history(athlete_id):
 # 5️⃣ FUNÇÕES ANALÍTICAS
 # =====================================================
 
+if submitted:
 
-if len(respostas) < 20:
-    raise ValueError("Respostas insuficientes")
+    if len(respostas) < 20:
+        st.warning("Complete o questionário.")
+        return
+
+    forca, tecnica, ... = calcular_scores(respostas)
+
 def calcular_scores(respostas):
 
     forca = float(np.mean(respostas[0:3]))
