@@ -1182,7 +1182,7 @@ st.metric("BJJ Performance Score", f"{bjj_score}/100")
     # PCA + PERFIL
     # -----------------------------
 
-    pc1, pc2 = plot_pca(
+pc1, pc2 = plot_pca(
         forca, tecnica, guarda, passagem,
         condicionamento, tempo_reacao, estrategia
     )
