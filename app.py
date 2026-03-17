@@ -1224,8 +1224,8 @@ if menu == "Nova Avaliação":
 
     with tab2:
         plot_pca(
-            forca, tecnica, guarda, passagem,
-            condicionamento, tempo_reacao, estrategia
+        forca, tecnica, guarda, passagem,
+        condicionamento, tempo_reacao, estrategia
         )
 
     with tab3:
