@@ -1136,6 +1136,22 @@ if menu == "Nova Avaliação":
 
             st.success("Avaliação concluída!")
 
+st.write("Score:", round(score, 2))
+st.write("Faixa estimada:", faixa_estimada)
+
+st.divider()
+
+# KPI PRINCIPAL
+st.metric(
+    "BJJ Performance Score",
+    f"{bjj_score}/100"
+)
+
+st.subheader("Análise Técnica do Atleta")
+
+
+            
+
 
 
             pc1, pc2 = plot_pca(
@@ -1169,16 +1185,16 @@ if menu == "Nova Avaliação":
 
             st.subheader("Ficha Técnica do Atleta")
 
-            col1,col2,col3 = st.columns(3)
+            col1, col2, col3 = st.columns(3)
 
-            with col1:
-                st.metric("Score Geral", round(score,1))
+with col1:
+    st.metric("BJJ Performance Score", f"{bjj_score}/100")
 
-            with col2:
-                st.metric("BJJ Performance Score", f"{bjj_score}/100")
+with col2:
+    st.metric("Score Global", round(score,2))
 
-            with col3:
-                st.metric("Faixa Estimada", faixa_estimada)
+with col3:
+    st.metric("Faixa Estimada", faixa_estimada)
 
 
             st.divider()
