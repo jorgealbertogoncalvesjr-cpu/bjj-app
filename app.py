@@ -1201,7 +1201,7 @@ pontos_fortes, melhorias, recomendacoes = gerar_diagnostico(
 st.divider()
 st.subheader("Ficha Técnica do Atleta")
 
-    col1, col2, col3 = st.columns(3)
+col1, col2, col3 = st.columns(3)
 
     with col1:
         st.metric("BJJ Score", f"{bjj_score}/100")
