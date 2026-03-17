@@ -544,7 +544,7 @@ def plot_pca(
 
     return pc1, pc2
 
- draw_confidence_ellipse(df["PC1"], df["PC2"], ax)
+     draw_confidence_ellipse(df["PC1"], df["PC2"], ax)
 
 ax.scatter(
     pc1,
