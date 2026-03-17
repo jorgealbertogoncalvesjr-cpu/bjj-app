@@ -854,7 +854,7 @@ def gerar_pdf(
 ):
 
     file_path = f"relatorio_{nome_atleta}_{datetime.now().timestamp()}.pdf"
-        if not pontos_fortes:
+    if not pontos_fortes:
         
     
         doc = SimpleDocTemplate(
