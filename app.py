@@ -690,26 +690,26 @@ def plot_heatmap():
         else:
             nomes.append(f"A{i}")
     
-       if len(nomes) == len(matriz):
-        matriz.index = nomes
-    
-        fig, ax = plt.subplots(figsize=(10,5))
-    
-        sns.heatmap(
-    
-            matriz,
-            cmap="RdYlGn",
-            annot=True,
-            fmt=".0f",
-            vmin=0,
-            vmax=100,
-            ax=ax
-    
-        )
-    
-        ax.set_title("Heatmap de Competências")
-    
-        st.pyplot(fig)
+           if len(nomes) == len(matriz):
+            matriz.index = nomes
+        
+            fig, ax = plt.subplots(figsize=(10,5))
+        
+            sns.heatmap(
+        
+                matriz,
+                cmap="RdYlGn",
+                annot=True,
+                fmt=".0f",
+                vmin=0,
+                vmax=100,
+                ax=ax
+        
+            )
+        
+            ax.set_title("Heatmap de Competências")
+        
+            st.pyplot(fig)
 
 
 
