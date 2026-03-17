@@ -1151,18 +1151,18 @@ add_athlete(
 df = get_athletes()
 atleta_id = df.iloc[-1]["athlete_id"]
 
-    save_questionnaire([
-        int(len(get_scores_df()) + 1),
-        int(atleta_id),
-        float(forca),
-        float(tecnica),
-        float(guarda),
-        float(passagem),
-        float(condicionamento),
-        float(tempo_reacao),
-        float(estrategia),
-        datetime.now().strftime("%Y-%m-%d")
-    ])
+save_questionnaire([
+    int(len(get_scores_df()) + 1),
+    int(atleta_id),
+    float(forca),
+    float(tecnica),
+    float(guarda),
+    float(passagem),
+    float(condicionamento),
+    float(tempo_reacao),
+    float(estrategia),
+    datetime.now().strftime("%Y-%m-%d")
+])
 
     st.success("Avaliação concluída!")
 
