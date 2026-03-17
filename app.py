@@ -216,9 +216,7 @@ if submitted:
         st.warning("Complete o questionário.")
         return
 
-    forca, tecnica, ... = calcular_scores(respostas)
-
-def calcular_scores(respostas):
+   def calcular_scores(respostas):
 
     forca = float(np.mean(respostas[0:3]))
     tecnica = float(np.mean(respostas[3:6]))
