@@ -782,15 +782,19 @@ def plot_heatmap():
 
 for i in range(len(componentes)):
 
+    # Nome do atleta (seguro)
     if i < len(atletas):
         nome = atletas.iloc[i]["nome"]
+        athlete_id = atletas.iloc[i]["athlete_id"]
     else:
         nome = f"A{i}"
+        athlete_id = None
 
-    x = componentes[i,0]
-    y = componentes[i,1]
+    x = componentes[i, 0]
+    y = componentes[i, 1]
 
-    if atletas.iloc[i]["athlete_id"] == athlete_id_avaliado:
+    # Destaque do atleta avaliado
+    if athlete_id == athlete_id_avaliado:
 
         ax.scatter(
             x,
@@ -799,7 +803,7 @@ for i in range(len(componentes)):
             s=350,
             marker="*",
             edgecolor="black",
-            label="Atleta Avaliado"
+            label="Atleta Avaliado" if i == 0 else ""
         )
 
     else:
@@ -810,7 +814,7 @@ for i in range(len(componentes)):
             color="steelblue",
             s=90,
             alpha=0.7,
-            label="Base da Academia"
+            label="Base da Academia" if i == 0 else ""
         )
 
     ax.text(x, y, nome, fontsize=9)
