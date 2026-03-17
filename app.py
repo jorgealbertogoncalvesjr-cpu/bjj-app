@@ -1164,7 +1164,7 @@ save_questionnaire([
     datetime.now().strftime("%Y-%m-%d")
 ])
 
-    st.success("Avaliação concluída!")
+st.success("Avaliação concluída!")
 
     # -----------------------------
     # RESULTADOS
