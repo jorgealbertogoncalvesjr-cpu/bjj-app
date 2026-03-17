@@ -744,17 +744,17 @@ def plot_heatmap():
     # MATRIZ PCA
     # -------------------------------------------------
 
-    matriz = df[
-        [
-            "forca_score",
-            "tecnica_score",
-            "guarda_score",
-            "passagem_score",
-            "condicionamento_score",
-            "tempo_reacao_score",
-            "estrategia_score",
+        matriz = df[
+            [
+                "forca_score",
+                "tecnica_score",
+                "guarda_score",
+                "passagem_score",
+                "condicionamento_score",
+                "tempo_reacao_score",
+                "estrategia_score",
+            ]
         ]
-    ]
 
     matriz = matriz.apply(pd.to_numeric, errors="coerce")
 
