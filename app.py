@@ -783,9 +783,6 @@ def plot_heatmap():
 # PLOT DOS ATLETAS
 # -------------------------------------------------
 
-def plot_perceptual_map(...):
-
-    ...
 
     for i in range(len(componentes)):
 
