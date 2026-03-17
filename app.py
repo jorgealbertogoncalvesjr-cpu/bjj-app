@@ -788,7 +788,6 @@ def plot_perceptual_map(...):
     ...
 
     for i in range(len(componentes)):
-        ...
 
     if i < len(atletas):
         nome = atletas.iloc[i]["nome"]
@@ -827,20 +826,20 @@ def plot_perceptual_map(...):
     # EIXOS
     # -------------------------------------------------
 
-    ax.axhline(0, linestyle="--", color="gray")
-    ax.axvline(0, linestyle="--", color="gray")
-
-    ax.set_title("Mapa Perceptual — Perfil Técnico dos Atletas")
-
-    ax.set_xlabel("Dimensão Técnica 1")
-    ax.set_ylabel("Dimensão Técnica 2")
-
-    # evitar legenda duplicada
-    handles, labels = ax.get_legend_handles_labels()
-    by_label = dict(zip(labels, handles))
-    ax.legend(by_label.values(), by_label.keys())
-
-    st.pyplot(fig)
+        ax.axhline(0, linestyle="--", color="gray")
+        ax.axvline(0, linestyle="--", color="gray")
+    
+        ax.set_title("Mapa Perceptual — Perfil Técnico dos Atletas")
+    
+        ax.set_xlabel("Dimensão Técnica 1")
+        ax.set_ylabel("Dimensão Técnica 2")
+    
+        # evitar legenda duplicada
+        handles, labels = ax.get_legend_handles_labels()
+        by_label = dict(zip(labels, handles))
+        ax.legend(by_label.values(), by_label.keys())
+    
+        st.pyplot(fig)
 
 # =====================================================
 # 8️⃣ GERAÇÃO DE RELATÓRIO PDF
