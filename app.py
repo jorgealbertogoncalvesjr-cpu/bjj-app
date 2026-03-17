@@ -734,25 +734,30 @@ def plot_heatmap():
             return
 
  
-    def plot_perceptual_map(atleta_nome=None):
-        df = get_scores_df()
-        atletas = get_athletes()
+def plot_perceptual_map(atleta_nome=None):
+
+    df = get_scores_df()
+    atletas = get_athletes()
+
+    if df.empty or len(df) < 2:
+        st.warning("Dados insuficientes.")
+        return
 
     # -------------------------------------------------
     # MATRIZ PCA
     # -------------------------------------------------
 
     matriz = df[
-            [
-                "forca_score",
-                "tecnica_score",
-                "guarda_score",
-                "passagem_score",
-                "condicionamento_score",
-                "tempo_reacao_score",
-                "estrategia_score",
-            ]
+        [
+            "forca_score",
+            "tecnica_score",
+            "guarda_score",
+            "passagem_score",
+            "condicionamento_score",
+            "tempo_reacao_score",
+            "estrategia_score",
         ]
+    ]
 
     matriz = matriz.apply(pd.to_numeric, errors="coerce")
 
@@ -762,81 +767,79 @@ def plot_heatmap():
     pca = PCA(n_components=2)
     componentes = pca.fit_transform(matriz_scaled)
 
-    fig, ax = plt.subplots(figsize=(9,6))
+    fig, ax = plt.subplots(figsize=(9, 6))
 
-    # descobrir ID do atleta avaliado
+    # -------------------------------------------------
+    # IDENTIFICAR ATLETA
+    # -------------------------------------------------
+
     athlete_id_avaliado = None
 
     if atleta_nome is not None:
-
         atleta_row = atletas[atletas["nome"] == atleta_nome]
 
         if not atleta_row.empty:
             athlete_id_avaliado = atleta_row.iloc[0]["athlete_id"]
 
+    # -------------------------------------------------
+    # PLOT DOS ATLETAS
+    # -------------------------------------------------
 
-# -------------------------------------------------
-# PLOT DOS ATLETAS
-# -------------------------------------------------
+    for i in range(len(componentes)):
 
+        if i < len(atletas):
+            nome = atletas.iloc[i]["nome"]
+            athlete_id = atletas.iloc[i]["athlete_id"]
+        else:
+            nome = f"A{i}"
+            athlete_id = None
 
-for i in range(len(componentes)):
+        x = componentes[i, 0]
+        y = componentes[i, 1]
 
-    # Nome do atleta (seguro)
-    if i < len(atletas):
-        nome = atletas.iloc[i]["nome"]
-        athlete_id = atletas.iloc[i]["athlete_id"]
-    else:
-        nome = f"A{i}"
-        athlete_id = None
+        if athlete_id == athlete_id_avaliado:
 
-    x = componentes[i, 0]
-    y = componentes[i, 1]
+            ax.scatter(
+                x,
+                y,
+                color="darkorange",
+                s=350,
+                marker="*",
+                edgecolor="black",
+                label="Atleta Avaliado" if i == 0 else ""
+            )
 
-    # Destaque do atleta avaliado
-    if athlete_id == athlete_id_avaliado:
+        else:
 
-        ax.scatter(
-            x,
-            y,
-            color="darkorange",
-            s=350,
-            marker="*",
-            edgecolor="black",
-            label="Atleta Avaliado" if i == 0 else ""
-        )
+            ax.scatter(
+                x,
+                y,
+                color="steelblue",
+                s=90,
+                alpha=0.7,
+                label="Base da Academia" if i == 0 else ""
+            )
 
-    else:
-
-        ax.scatter(
-            x,
-            y,
-            color="steelblue",
-            s=90,
-            alpha=0.7,
-            label="Base da Academia" if i == 0 else ""
-        )
-
-    ax.text(x, y, nome, fontsize=9)
+        ax.text(x, y, nome, fontsize=8)
 
     # -------------------------------------------------
-    # EIXOS
+    # EIXOS (FORA DO LOOP!)
     # -------------------------------------------------
 
     ax.axhline(0, linestyle="--", color="gray")
     ax.axvline(0, linestyle="--", color="gray")
 
     ax.set_title("Mapa Perceptual — Perfil Técnico dos Atletas")
-
     ax.set_xlabel("Dimensão Técnica 1")
     ax.set_ylabel("Dimensão Técnica 2")
 
-    # evitar legenda duplicada
     handles, labels = ax.get_legend_handles_labels()
     by_label = dict(zip(labels, handles))
     ax.legend(by_label.values(), by_label.keys())
 
     st.pyplot(fig)
+
+
 
 # =====================================================
 # 8️⃣ GERAÇÃO DE RELATÓRIO PDF
