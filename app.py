@@ -690,13 +690,13 @@ st.pyplot(fig)
 
 
 
-    df = get_scores_df()
-    atletas = get_athletes()
+df = get_scores_df()
+atletas = get_athletes()
 
-    faixa_filtro = st.selectbox(
-        "Comparar com atletas da faixa:",
-        ["Todas","Branca","Azul","Roxa","Marrom","Preta"]
-    )
+faixa_filtro = st.selectbox(
+    "Comparar com atletas da faixa:",
+    ["Todas","Branca","Azul","Roxa","Marrom","Preta"]
+)
 
     # FILTRO POR FAIXA
     if faixa_filtro != "Todas":
