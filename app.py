@@ -655,21 +655,38 @@ def plot_heatmap():
 
     fig, ax = plt.subplots(figsize=(10,5))
 
-    sns.heatmap(
+    fig, ax = plt.subplots(figsize=(14,8))
 
-        matriz,
-        cmap="RdYlGn",
-        annot=True,
-        fmt=".0f",
-        vmin=0,
-        vmax=100,
-        ax=ax
+matriz = matriz.apply(pd.to_numeric, errors="coerce").round(0)
 
-    )
+# 🔥 TOP 10 atletas
+matriz["media"] = matriz.mean(axis=1)
+matriz = matriz.sort_values("media", ascending=False).head(10)
+matriz = matriz.drop(columns="media")
 
-    ax.set_title("Heatmap de Competências")
+sns.heatmap(
+    matriz,
+    cmap="viridis",
+    annot=False,
+    vmin=0,
+    vmax=100,
+    linewidths=0.5,
+    linecolor='gray',
+    ax=ax
+)
 
-    st.pyplot(fig)
+plt.xticks(rotation=45, ha="right")
+plt.yticks(rotation=0)
+
+# 🔥 destacar atleta
+for i, nome in enumerate(matriz.index):
+    if nome == st.session_state.nome:
+        ax.get_yticklabels()[i].set_color("red")
+        ax.get_yticklabels()[i].set_weight("bold")
+
+ax.set_title("Heatmap de Competências (Top 10)")
+
+st.pyplot(fig)
 
 
 
