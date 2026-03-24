@@ -710,9 +710,9 @@ if faixa_filtro != "Todas":
     atletas = atletas_filtrados.reset_index(drop=True)
     df = df.reset_index(drop=True)
 
-    if len(df) < 2:
-        st.warning("Poucos atletas nesta faixa.")
-        return
+if len(df) < 2:
+    st.warning("Poucos atletas nesta faixa.")
+    return
 
  
 def plot_perceptual_map(atleta_nome=None):
