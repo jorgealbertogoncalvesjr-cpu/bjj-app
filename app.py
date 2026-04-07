@@ -340,9 +340,10 @@ def plot_pca(
 
     return pc1, pc2
 
-def plot_perceptual_map():
+def plot_perceptual_map(atleta_nome=None):
 
     df = get_scores_df()
+    atletas = get_athletes()
 
     if len(df) < 2:
         st.warning("Dados insuficientes.")
@@ -356,7 +357,9 @@ def plot_perceptual_map():
         "condicionamento_score",
         "tempo_reacao_score",
         "estrategia_score"
-    ]].astype(float)
+    ]]
+
+    matriz = matriz.apply(pd.to_numeric, errors="coerce")
 
     scaler = StandardScaler()
     matriz_scaled = scaler.fit_transform(matriz)
@@ -364,29 +367,49 @@ def plot_perceptual_map():
     pca = PCA(n_components=2)
     componentes = pca.fit_transform(matriz_scaled)
 
-    fig, ax = plt.subplots(figsize=(8,6))
+    fig, ax = plt.subplots(figsize=(9,6))
 
-    ax.scatter(
-        componentes[:,0],
-        componentes[:,1],
-        color="steelblue",
-        s=80
-    )
+    for i in range(len(componentes)):
 
-    for i in range(len(df)):
-        ax.text(
-            componentes[i,0],
-            componentes[i,1],
-            f"A{i+1}",
-            fontsize=9
-        )
+        if i < len(atletas):
+            nome = atletas.iloc[i]["nome"]
+        else:
+            nome = f"A{i}"
+
+        x = componentes[i,0]
+        y = componentes[i,1]
+
+        # atleta avaliado
+        if nome == atleta_nome:
+
+            ax.scatter(
+                x,y,
+                color="darkorange",
+                s=250,
+                edgecolor="black",
+                label="Atleta Avaliado" if i==0 else ""
+            )
+
+        else:
+
+            ax.scatter(
+                x,y,
+                color="steelblue",
+                s=90,
+                label="Base de atletas" if i==1 else ""
+            )
+
+        ax.text(x,y,nome,fontsize=9)
 
     ax.axhline(0, linestyle="--", color="gray")
     ax.axvline(0, linestyle="--", color="gray")
 
     ax.set_title("Mapa Perceptual — Perfil Técnico dos Atletas")
+
     ax.set_xlabel("Dimensão Técnica 1")
     ax.set_ylabel("Dimensão Técnica 2")
+
+    ax.legend()
 
     st.pyplot(fig)
 
@@ -415,6 +438,7 @@ def plot_radar(forca, tecnica, guarda, passagem):
 def plot_heatmap():
 
     df = get_scores_df()
+    atletas = get_athletes()
 
     if len(df) == 0:
         return
@@ -427,19 +451,39 @@ def plot_heatmap():
         "condicionamento_score",
         "tempo_reacao_score",
         "estrategia_score"
-    ]]
+    ]].copy()
 
-    fig, ax = plt.subplots(figsize=(8,4))
+    matriz = matriz.apply(pd.to_numeric, errors="coerce")
+
+    # adicionar nomes
+    nomes = []
+
+    for i in range(len(matriz)):
+        if i < len(atletas):
+            nomes.append(atletas.iloc[i]["nome"])
+        else:
+            nomes.append(f"A{i}")
+
+    matriz.index = nomes
+
+    fig, ax = plt.subplots(figsize=(10,5))
 
     sns.heatmap(
         matriz,
         cmap="RdYlGn",
         annot=True,
-        linewidths=.5,
+        fmt=".0f",
+        linewidths=0.5,
+        vmin=0,
+        vmax=100,
+        cbar_kws={"label":"Score Técnico"},
         ax=ax
     )
 
     ax.set_title("Heatmap de Competências Técnicas")
+
+    ax.set_ylabel("Atletas")
+    ax.set_xlabel("Dimensões Técnicas")
 
     st.pyplot(fig)
 
@@ -620,173 +664,172 @@ if menu == "Nova Avaliação":
                 st.warning("Preencha nome e sobrenome.")
 
 
-plot_pca(
-    forca,
-    tecnica,
-    guarda,
-    passagem,
-    condicionamento,
-    tempo_reacao,
-    estrategia
-)
+    # -----------------------------
+    # ETAPA 2 — QUESTIONÁRIO
+    # -----------------------------
 
-plot_perceptual_map()
+    if st.session_state.etapa == 2:
 
-plot_heatmap()
+        st.title("Questionário Técnico")
 
+        perguntas = [
+            "Consigo manter pressão constante por 5 minutos.",
+            "Meu jogo depende bastante de força física.",
+            "Consigo finalizar apenas controlando posição.",
+            "Tenho facilidade em estabilizar montada ou 100kg.",
+            "Meu jogo melhora contra atletas menores.",
 
-# -----------------------------
-# ETAPA 2 — QUESTIONÁRIO
-# -----------------------------
+            "Aplico golpes com mínimo gasto de energia.",
+            "Tenho variações técnicas para uma posição.",
+            "Corrijo detalhes técnicos com facilidade.",
+            "Finalizo mais por técnica do que explosão.",
+            "Meu timing é diferencial.",
 
-if st.session_state.etapa == 2:
+            "Prefiro puxar guarda.",
+            "Tenho múltiplas guardas ativas.",
+            "Raspo atletas da mesma faixa com frequência.",
+            "Me sinto confortável por baixo.",
+            "Finalizo da guarda com consistência.",
 
-    st.title("Questionário Técnico")
+            "Prefiro iniciar passando guarda.",
+            "Passo guarda sem explodir.",
+            "Uso pressão como estratégia.",
+            "Tenho controle forte em joelho na barriga.",
+            "Finalizo após passar guarda."
+        ]
 
-    perguntas = [
-        "Consigo manter pressão constante por 5 minutos.",
-        "Meu jogo depende bastante de força física.",
-        "Consigo finalizar apenas controlando posição.",
-        "Tenho facilidade em estabilizar montada ou 100kg.",
-        "Meu jogo melhora contra atletas menores.",
+        respostas = []
 
-        "Aplico golpes com mínimo gasto de energia.",
-        "Tenho variações técnicas para uma posição.",
-        "Corrijo detalhes técnicos com facilidade.",
-        "Finalizo mais por técnica do que explosão.",
-        "Meu timing é diferencial.",
+        with st.form("avaliacao"):
 
-        "Prefiro puxar guarda.",
-        "Tenho múltiplas guardas ativas.",
-        "Raspo atletas da mesma faixa com frequência.",
-        "Me sinto confortável por baixo.",
-        "Finalizo da guarda com consistência.",
+            for p in perguntas:
+                respostas.append(st.slider(p, 0, 100, 50, step=5))
 
-        "Prefiro iniciar passando guarda.",
-        "Passo guarda sem explodir.",
-        "Uso pressão como estratégia.",
-        "Tenho controle forte em joelho na barriga.",
-        "Finalizo após passar guarda."
-    ]
-
-    respostas = []
-
-    with st.form("avaliacao"):
-
-        for p in perguntas:
-            respostas.append(st.slider(p, 0, 100, 50, step=5))
-
-        submitted = st.form_submit_button("Finalizar Avaliação")
+            submitted = st.form_submit_button("Finalizar Avaliação")
 
 
-    if submitted:
+        if submitted:
 
-        forca, tecnica, guarda, passagem, condicionamento, tempo_reacao, estrategia, score = calcular_scores(respostas)
+            forca, tecnica, guarda, passagem, condicionamento, tempo_reacao, estrategia, score = calcular_scores(respostas)
 
-        faixa_estimada = estimar_faixa(
-            score,
-            st.session_state.tempo
-        )
+            faixa_estimada = estimar_faixa(
+                score,
+                st.session_state.tempo
+            )
 
-        # salvar atleta
-        add_athlete(
-            st.session_state.nome,
-            st.session_state.sobrenome,
-            st.session_state.faixa,
-            st.session_state.tempo
-        )
-
-      
-# =====================================================
-# FUNÇÕES BANCO
-# =====================================================
-
-def get_athletes():
-
-    try:
-
-        sheet = connect_google()
-        ws = sheet.worksheet("athletes")
-
-        data = ws.get_all_records()
-
-        if len(data) == 0:
-            return pd.DataFrame()
-
-        return pd.DataFrame(data)
-
-    except Exception as e:
-
-        st.error(f"Erro ao acessar aba athletes: {e}")
-        return pd.DataFrame()
+            # salvar atleta
+            add_athlete(
+                st.session_state.nome,
+                st.session_state.sobrenome,
+                st.session_state.faixa,
+                st.session_state.tempo
+            )
 
 
-# salvar atleta
-add_athlete(
-    st.session_state.nome,
-    st.session_state.sobrenome,
-    st.session_state.faixa,
-    st.session_state.tempo
-)
+            # =====================================================
+            # FUNÇÕES BANCO
+            # =====================================================
 
-df = get_athletes()
-atleta_id = df.iloc[-1]["athlete_id"]
+            def get_athletes():
 
-# salvar scores
-save_questionnaire([
-    int(len(get_scores_df()) + 1),
-    int(atleta_id),
-    float(forca),
-    float(tecnica),
-    float(guarda),
-    float(passagem),
-    float(condicionamento),
-    float(tempo_reacao),
-    float(estrategia),
-    datetime.now().strftime("%Y-%m-%d")
-])
+                try:
 
-st.success("Avaliação concluída!")
+                    sheet = connect_google()
+                    ws = sheet.worksheet("athletes")
 
-st.write("Score:", round(score, 2))
-st.write("Faixa estimada:", faixa_estimada)
+                    data = ws.get_all_records()
 
-pc1, pc2 = plot_pca(
-    forca,
-    tecnica,
-    guarda,
-    passagem,
-    condicionamento,
-    tempo_reacao,
-    estrategia
-)
+                    if len(data) == 0:
+                        return pd.DataFrame()
 
-perfil = classificar_perfil(pc1, pc2)
+                    return pd.DataFrame(data)
 
-st.subheader("Perfil Técnico Identificado")
-st.success(perfil)
+                except Exception as e:
 
-st.markdown(f"""
-### Perfil Técnico
+                    st.error(f"Erro ao acessar aba athletes: {e}")
+                    return pd.DataFrame()
 
-**{perfil}**
 
-Este perfil representa a tendência dominante do jogo do atleta
-considerando força, técnica, guarda e passagem.
-""")
+            # salvar atleta novamente para garantir ID atualizado
+            add_athlete(
+                st.session_state.nome,
+                st.session_state.sobrenome,
+                st.session_state.faixa,
+                st.session_state.tempo
+            )
 
-plot_radar(forca, tecnica, guarda, passagem)
-plot_correlation()
+            df = get_athletes()
+            atleta_id = df.iloc[-1]["athlete_id"]
 
-pdf = gerar_pdf(
-    st.session_state.nome,
-    score,
-    faixa_estimada
-)
 
-with open(pdf, "rb") as f:
-    st.download_button(
-        "Baixar PDF",
-        f,
-        "Relatorio_BJJ.pdf"
-    )
+            # salvar scores
+            save_questionnaire([
+                int(len(get_scores_df()) + 1),
+                int(atleta_id),
+                float(forca),
+                float(tecnica),
+                float(guarda),
+                float(passagem),
+                float(condicionamento),
+                float(tempo_reacao),
+                float(estrategia),
+                datetime.now().strftime("%Y-%m-%d")
+            ])
+
+
+            st.success("Avaliação concluída!")
+
+            st.write("Score:", round(score, 2))
+            st.write("Faixa estimada:", faixa_estimada)
+
+
+            pc1, pc2 = plot_pca(
+                forca,
+                tecnica,
+                guarda,
+                passagem,
+                condicionamento,
+                tempo_reacao,
+                estrategia
+            )
+
+
+            perfil = classificar_perfil(pc1, pc2)
+
+            st.subheader("Perfil Técnico Identificado")
+            st.success(perfil)
+
+
+            st.markdown(f"""
+            ### Perfil Técnico
+
+            **{perfil}**
+
+            Este perfil representa a tendência dominante do jogo do atleta
+            considerando força, técnica, guarda e passagem.
+            """)
+
+
+            plot_radar(forca, tecnica, guarda, passagem)
+            plot_correlation()
+
+
+            # novos gráficos adicionados
+            plot_perceptual_map()
+            plot_heatmap()
+
+
+            pdf = gerar_pdf(
+                st.session_state.nome,
+                score,
+                faixa_estimada
+            )
+
+
+            with open(pdf, "rb") as f:
+                st.download_button(
+                    "Baixar PDF",
+                    f,
+                    "Relatorio_BJJ.pdf"
+                )
+
