@@ -23,6 +23,7 @@ from reportlab.lib.units import inch
 from reportlab.lib.styles import getSampleStyleSheet
 
 
+
 # =====================================================
 # 2️⃣ CONFIGURAÇÃO STREAMLIT
 # =====================================================
@@ -97,7 +98,7 @@ def add_athlete(nome, sobrenome, faixa, tempo):
 
         records = ws.get_all_records()
 
-        athlete_id = len(records) + 1
+        athlete_id = max([r["athlete_id"] for r in records], default=0) + 1
 
         ws.append_row([
 
@@ -188,7 +189,8 @@ def get_athlete_history(athlete_id):
     if df.empty:
         return pd.DataFrame()
 
-    df["data"] = pd.to_datetime(df["data"])
+    if "data" in df.columns:
+        df["data"] = pd.to_datetime(df["data"])
 
     df["score_total"] = df[[
 
@@ -201,9 +203,10 @@ def get_athlete_history(athlete_id):
         "estrategia_score"
 
     ]].mean(axis=1)
+    return df
 
 
-    # =====================================================
+# =====================================================
 # 5️⃣ FUNÇÕES ANALÍTICAS
 # =====================================================
 
@@ -218,7 +221,6 @@ def calcular_scores(respostas):
     estrategia = float(np.mean(respostas[18:20]))
 
     score_global = float(np.mean([
-
         forca,
         tecnica,
         guarda,
@@ -226,7 +228,6 @@ def calcular_scores(respostas):
         condicionamento,
         tempo_reacao,
         estrategia
-
     ]))
 
     return (
@@ -302,13 +303,10 @@ def classificar_nivel(score):
 
     if score >= 85:
         return "Elite"
-
-    elif score >= 70:
+    elif 70 <= score < 85:
         return "Avançado"
-
-    elif score >= 55:
+    elif 55 <= score < 70:
         return "Intermediário"
-
     else:
         return "Iniciante"
 
@@ -321,24 +319,19 @@ def classificar_perfil(pc1, pc2):
 
     if pc1 < 0 and pc2 > 0:
         return "Guardeiro Técnico"
-
     elif pc1 < 0 and pc2 <= 0:
         return "Guardeiro Físico"
-
     elif pc1 >= 0 and pc2 > 0:
         return "Passador Técnico"
-
     else:
         return "Passador Pressão"
 
 
-
-    # =====================================================
+# =====================================================
 # 6️⃣ DIAGNÓSTICO AUTOMÁTICO
 # =====================================================
 
 def gerar_diagnostico(
-
     forca,
     tecnica,
     guarda,
@@ -346,7 +339,6 @@ def gerar_diagnostico(
     condicionamento,
     tempo_reacao,
     estrategia
-
 ):
 
     pontos_fortes = []
@@ -404,17 +396,21 @@ def gerar_diagnostico(
 # CONFIDENCE ELLIPSE
 # =====================================================
 
+
 def draw_confidence_ellipse(x, y, ax, n_std=2.0):
 
     if len(x) < 2:
         return
 
-    if len(x) < 2:
-        return
 
     cov = np.cov(x, y)
 
-    pearson = cov[0,1] / np.sqrt(cov[0,0] * cov[1,1])
+    den = np.sqrt(cov[0,0] * cov[1,1])
+
+    if den == 0:
+        return
+
+    pearson = cov[0,1] / den
 
     ell_radius_x = np.sqrt(1 + pearson)
     ell_radius_y = np.sqrt(1 - pearson)
@@ -483,30 +479,25 @@ def plot_pca(
     df["PC1"] = componentes[:, 0]
     df["PC2"] = componentes[:, 1]
 
-    novo = scaler.transform(
-        [[
-            forca,
-            tecnica,
-            guarda,
-            passagem,
-            condicionamento,
-            tempo_reacao,
-            estrategia
-        ]]
-    )
+    novo = scaler.transform([[
+        forca,
+        tecnica,
+        guarda,
+        passagem,
+        condicionamento,
+        tempo_reacao,
+        estrategia
+    ]])
 
     novo = pca.transform(novo)
 
     pc1 = novo[0][0]
     pc2 = novo[0][1]
 
+    # 🎯 CRIA FIGURA
     fig, ax = plt.subplots(figsize=(8, 6))
 
-    ax.grid(True, linestyle="--", alpha=0.4)
-
-    ax.axhline(0, linestyle="--", color="gray")
-    ax.axvline(0, linestyle="--", color="gray")
-
+    # BASE
     ax.scatter(
         df["PC1"],
         df["PC2"],
@@ -516,10 +507,7 @@ def plot_pca(
         label="Base de atletas",
     )
 
-    return pc1, pc2
-
-    draw_confidence_ellipse(df["PC1"], df["PC2"], ax)
-
+    # ATLETA
     ax.scatter(
         pc1,
         pc2,
@@ -530,24 +518,23 @@ def plot_pca(
         label="Atleta Avaliado"
     )
 
-    ax.text(2,2,"Passador Técnico")
-    ax.text(-3,2,"Guardeiro Técnico")
-    ax.text(-3,-2,"Guardeiro Físico")
-    ax.text(2,-2,"Passador Pressão")
+    # GRID + EIXOS
+    ax.grid(True, linestyle="--", alpha=0.4)
+    ax.axhline(0, linestyle="--", color="gray")
+    ax.axvline(0, linestyle="--", color="gray")
 
+    # LABELS
     ax.set_title("Mapa Técnico — PCA Scouting")
     ax.set_xlabel("Passagem ← → Guarda")
     ax.set_ylabel("Força ← → Técnica")
     ax.set_xlim(-5,5)
     ax.set_ylim(-5,5)
 
-    
     ax.legend()
 
     st.pyplot(fig)
 
-    return pc1,pc2
-
+    return pc1, pc2  
 
 def plot_style_profile(pc1, pc2):
 
@@ -589,7 +576,7 @@ def plot_radar_comparativo(forca, tecnica, guarda, passagem):
         return
 
     # converter para número
-    df = df.apply(pd.to_numeric, errors="ignore")
+    df = df.apply(pd.to_numeric, errors="coerce")
 
     df["forca_score"] = pd.to_numeric(df["forca_score"], errors="coerce")
     df["tecnica_score"] = pd.to_numeric(df["tecnica_score"], errors="coerce")
@@ -662,55 +649,80 @@ def plot_heatmap():
 
         else:
             nomes.append(f"A{i}")
-
-    matriz.index = nomes
+    
+    if len(nomes) == len(matriz):
+        matriz.index = nomes
 
     fig, ax = plt.subplots(figsize=(10,5))
 
-    sns.heatmap(
+    fig, ax = plt.subplots(figsize=(14,8))
 
-        matriz,
-        cmap="RdYlGn",
-        annot=True,
-        fmt=".0f",
-        vmin=0,
-        vmax=100,
-        ax=ax
+matriz = matriz.apply(pd.to_numeric, errors="coerce").round(0)
 
-    )
+# 🔥 TOP 10 atletas
+matriz["media"] = matriz.mean(axis=1)
+matriz = matriz.sort_values("media", ascending=False).head(10)
+matriz = matriz.drop(columns="media")
 
-    ax.set_title("Heatmap de Competências")
+sns.heatmap(
+    matriz,
+    cmap="viridis",
+    annot=False,
+    vmin=0,
+    vmax=100,
+    linewidths=0.5,
+    linecolor='gray',
+    ax=ax
+)
 
-    st.pyplot(fig)
+plt.xticks(rotation=45, ha="right")
+plt.yticks(rotation=0)
 
+# 🔥 destacar atleta
+for i, nome in enumerate(matriz.index):
+    if nome == st.session_state.nome:
+        ax.get_yticklabels()[i].set_color("red")
+        ax.get_yticklabels()[i].set_weight("bold")
+
+ax.set_title("Heatmap de Competências (Top 10)")
+
+st.pyplot(fig)
+
+
+
+df = get_scores_df()
+atletas = get_athletes()
+
+faixa_filtro = st.selectbox(
+    "Comparar com atletas da faixa:",
+    ["Todas","Branca","Azul","Roxa","Marrom","Preta"]
+)
+
+    # FILTRO POR FAIXA
+if faixa_filtro != "Todas":
+
+    atletas_filtrados = atletas[atletas["faixa"] == faixa_filtro]
+
+    ids = atletas_filtrados["athlete_id"].tolist()
+
+    df = df[df["athlete_id"].isin(ids)]
+
+    atletas = atletas_filtrados.reset_index(drop=True)
+    df = df.reset_index(drop=True)
+
+if len(df) < 2:
+    st.warning("Poucos atletas nesta faixa.")
+return
+
+ 
 def plot_perceptual_map(atleta_nome=None):
 
     df = get_scores_df()
     atletas = get_athletes()
 
-    faixa_filtro = st.selectbox(
-        "Comparar com atletas da faixa:",
-        ["Todas","Branca","Azul","Roxa","Marrom","Preta"]
-    )
-
-    # FILTRO POR FAIXA
-    if faixa_filtro != "Todas":
-
-        atletas_filtrados = atletas[atletas["faixa"] == faixa_filtro]
-
-        ids = atletas_filtrados["athlete_id"].tolist()
-
-        df = df[df["athlete_id"].isin(ids)]
-
-        atletas = atletas_filtrados.reset_index(drop=True)
-        df = df.reset_index(drop=True)
-
-        if len(df) < 2:
-            st.warning("Poucos atletas nesta faixa.")
-            return
-
- 
-    def plot_perceptual_map(atleta_nome=None):
+    if df.empty or len(df) < 2:
+        st.warning("Dados insuficientes.")
+        return
 
     # -------------------------------------------------
     # MATRIZ PCA
@@ -736,76 +748,79 @@ def plot_perceptual_map(atleta_nome=None):
     pca = PCA(n_components=2)
     componentes = pca.fit_transform(matriz_scaled)
 
-    fig, ax = plt.subplots(figsize=(9,6))
+    fig, ax = plt.subplots(figsize=(9, 6))
 
-    # descobrir ID do atleta avaliado
+    # -------------------------------------------------
+    # IDENTIFICAR ATLETA
+    # -------------------------------------------------
+
     athlete_id_avaliado = None
 
     if atleta_nome is not None:
-
         atleta_row = atletas[atletas["nome"] == atleta_nome]
 
         if not atleta_row.empty:
             athlete_id_avaliado = atleta_row.iloc[0]["athlete_id"]
 
+    # -------------------------------------------------
+    # PLOT DOS ATLETAS
+    # -------------------------------------------------
 
-# -------------------------------------------------
-# PLOT DOS ATLETAS
-# -------------------------------------------------
+    for i in range(len(componentes)):
 
-for i in range(len(componentes)):
+        if i < len(atletas):
+            nome = atletas.iloc[i]["nome"]
+            athlete_id = atletas.iloc[i]["athlete_id"]
+        else:
+            nome = f"A{i}"
+            athlete_id = None
 
-    if i < len(atletas):
-        nome = atletas.iloc[i]["nome"]
-    else:
-        nome = f"A{i}"
+        x = componentes[i, 0]
+        y = componentes[i, 1]
 
-    x = componentes[i,0]
-    y = componentes[i,1]
+        if athlete_id == athlete_id_avaliado:
 
-    if atletas.iloc[i]["athlete_id"] == athlete_id_avaliado:
+            ax.scatter(
+                x,
+                y,
+                color="darkorange",
+                s=350,
+                marker="*",
+                edgecolor="black",
+                label="Atleta Avaliado" if i == 0 else ""
+            )
 
-        ax.scatter(
-            x,
-            y,
-            color="darkorange",
-            s=350,
-            marker="*",
-            edgecolor="black",
-            label="Atleta Avaliado"
-        )
+        else:
 
-    else:
+            ax.scatter(
+                x,
+                y,
+                color="steelblue",
+                s=90,
+                alpha=0.7,
+                label="Base da Academia" if i == 0 else ""
+            )
 
-        ax.scatter(
-            x,
-            y,
-            color="steelblue",
-            s=90,
-            alpha=0.7,
-            label="Base da Academia"
-        )
-
-    ax.text(x, y, nome, fontsize=9)
+        ax.text(x, y, nome, fontsize=8)
 
     # -------------------------------------------------
-    # EIXOS
+    # EIXOS (FORA DO LOOP!)
     # -------------------------------------------------
 
     ax.axhline(0, linestyle="--", color="gray")
     ax.axvline(0, linestyle="--", color="gray")
 
     ax.set_title("Mapa Perceptual — Perfil Técnico dos Atletas")
-
     ax.set_xlabel("Dimensão Técnica 1")
     ax.set_ylabel("Dimensão Técnica 2")
 
-    # evitar legenda duplicada
     handles, labels = ax.get_legend_handles_labels()
     by_label = dict(zip(labels, handles))
     ax.legend(by_label.values(), by_label.keys())
 
     st.pyplot(fig)
+
+
 
 # =====================================================
 # 8️⃣ GERAÇÃO DE RELATÓRIO PDF
@@ -822,16 +837,18 @@ def gerar_pdf(
     recomendacoes
 ):
 
-    file_path = "relatorio_bjj.pdf"
-
-    doc = SimpleDocTemplate(
-        file_path,
-        pagesize=A4
-    )
-
-    styles = getSampleStyleSheet()
-
-    elementos = []
+    file_path = f"relatorio_{nome_atleta}_{datetime.now().timestamp()}.pdf"
+    if not pontos_fortes:
+        
+    
+        doc = SimpleDocTemplate(
+            file_path,
+            pagesize=A4
+        )
+    
+        styles = getSampleStyleSheet()
+    
+        elementos = []
 
     # -------------------------------------------------
     # TÍTULO
@@ -1093,102 +1110,82 @@ if menu == "Nova Avaliação":
 
             forca, tecnica, guarda, passagem, condicionamento, tempo_reacao, estrategia, score = calcular_scores(respostas)
 
-            bjj_score = calcular_bjj_score(
-                forca,
-                tecnica,
-                guarda,
-                passagem,
-                condicionamento,
-                tempo_reacao,
-                estrategia
-            )
+bjj_score = calcular_bjj_score(
+    forca,
+    tecnica,
+    guarda,
+    passagem,
+    condicionamento,
+    tempo_reacao,
+    estrategia
+)
 
-            faixa_estimada = estimar_faixa(
-                score,
-                st.session_state.tempo
-            )
+faixa_estimada = estimar_faixa(score, st.session_state.tempo)
 
-            add_athlete(
-                st.session_state.nome,
-                st.session_state.sobrenome,
-                st.session_state.faixa,
-                st.session_state.tempo
-            )
+add_athlete(
+        st.session_state.nome,
+        st.session_state.sobrenome,
+        st.session_state.faixa,
+        st.session_state.tempo
+    )
 
-            df = get_athletes()
+df = get_athletes()
+atleta_id = df.iloc[-1]["athlete_id"]
 
-            atleta_id = df.iloc[-1]["athlete_id"]
+save_questionnaire([
+    int(len(get_scores_df()) + 1),
+    int(atleta_id),
+    float(forca),
+    float(tecnica),
+    float(guarda),
+    float(passagem),
+    float(condicionamento),
+    float(tempo_reacao),
+    float(estrategia),
+    datetime.now().strftime("%Y-%m-%d")
+])
 
-            save_questionnaire([
+st.success("Avaliação concluída!")
 
-                int(len(get_scores_df()) + 1),
-                int(atleta_id),
-                float(forca),
-                float(tecnica),
-                float(guarda),
-                float(passagem),
-                float(condicionamento),
-                float(tempo_reacao),
-                float(estrategia),
-                datetime.now().strftime("%Y-%m-%d")
-
-            ])
-
-            st.success("Avaliação concluída!")
+    # -----------------------------
+    # RESULTADOS
+    # -----------------------------
 
 st.write("Score:", round(score, 2))
 st.write("Faixa estimada:", faixa_estimada)
 
 st.divider()
 
-# KPI PRINCIPAL
-st.metric(
-    "BJJ Performance Score",
-    f"{bjj_score}/100"
-)
+    # KPI PRINCIPAL
+st.metric("BJJ Performance Score", f"{bjj_score}/100")
 
-st.subheader("Análise Técnica do Atleta")
+    # -----------------------------
+    # PCA + PERFIL
+    # -----------------------------
 
+pc1, pc2 = plot_pca(
+        forca, tecnica, guarda, passagem,
+        condicionamento, tempo_reacao, estrategia
+    )
 
-            
+perfil = classificar_perfil(pc1, pc2)
 
+pontos_fortes, melhorias, recomendacoes = gerar_diagnostico(
+        forca, tecnica, guarda, passagem,
+        condicionamento, tempo_reacao, estrategia
+    )
 
+    # -----------------------------
+    # FICHA TÉCNICA
+    # -----------------------------
 
-            pc1, pc2 = plot_pca(
+st.divider()
+st.subheader("Ficha Técnica do Atleta")
 
-                forca,
-                tecnica,
-                guarda,
-                passagem,
-                condicionamento,
-                tempo_reacao,
-                estrategia
-
-            )
-
-            perfil = classificar_perfil(pc1,pc2)
-
-            pontos_fortes, melhorias, recomendacoes = gerar_diagnostico(
-
-                forca,
-                tecnica,
-                guarda,
-                passagem,
-                condicionamento,
-                tempo_reacao,
-                estrategia
-
-            )
-
-
-            st.divider()
-
-            st.subheader("Ficha Técnica do Atleta")
-
-            col1, col2, col3 = st.columns(3)
+col1, col2, col3 = st.columns(3)
 
 with col1:
-    st.metric("BJJ Performance Score", f"{bjj_score}/100")
+    st.metric("BJJ Score", f"{bjj_score}/100")
 
 with col2:
     st.metric("Score Global", round(score,2))
@@ -1196,93 +1193,53 @@ with col2:
 with col3:
     st.metric("Faixa Estimada", faixa_estimada)
 
+    # -----------------------------
+    # TABS
+    # -----------------------------
 
-            st.divider()
+st.divider()
+st.subheader("Análise Técnica")
 
-            st.subheader("Análise Técnica")
+tab1,tab2,tab3,tab4,tab5 = st.tabs([
+    "Radar Técnico",
+    "Scouting Map",
+    "Style Profile",
+    "Heatmap Academia",
+    "Mapa Perceptual"
+])
 
-            tab1,tab2,tab3,tab4,tab5 = st.tabs([
+with tab1:
+    plot_radar_comparativo(forca, tecnica, guarda, passagem)
 
-                "Radar Técnico",
-                "Scouting Map",
-                "Style Profile",
-                "Heatmap Academia",
-                "Mapa Perceptual"
+with tab2:
+    plot_pca(
+    forca, tecnica, guarda, passagem,
+    condicionamento, tempo_reacao, estrategia
+    )
 
-            ])
+with tab3:
+    plot_style_profile(pc1, pc2)
 
-            with tab1:
+with tab4:
+    plot_heatmap()
 
-                plot_radar_comparativo(
-                    forca,
-                    tecnica,
-                    guarda,
-                    passagem
-                )
+with tab5:
+    plot_perceptual_map(st.session_state.nome)
 
+    # -----------------------------
+    # PDF
+    # -----------------------------
 
-            with tab2:
+    pdf = gerar_pdf(
+        st.session_state.nome,
+        score,
+        bjj_score,
+        faixa_estimada,
+        perfil,
+        pontos_fortes,
+        melhorias,
+        recomendacoes
+    )
 
-                plot_pca(
-
-                    forca,
-                    tecnica,
-                    guarda,
-                    passagem,
-                    condicionamento,
-                    tempo_reacao,
-                    estrategia
-
-                )
-
-
-            with tab3:
-
-                plot_style_profile(pc1,pc2)
-
-
-            with tab4:
-
-                plot_heatmap()
-
-
-            with tab5:
-
-                plot_perceptual_map(
-                    st.session_state.nome
-                )
-
-
-            pdf = gerar_pdf(
-
-                st.session_state.nome,
-
-                score,
-
-                bjj_score,
-
-                faixa_estimada,
-
-                perfil,
-
-                pontos_fortes,
-
-                melhorias,
-
-                recomendacoes
-
-            )
-
-
-            with open(pdf,"rb") as f:
-
-                st.download_button(
-
-                    "Baixar Relatório PDF",
-
-                    f,
-
-                    "BJJ_Performance_Report.pdf"
-
-                )
-
+    with open(pdf,"rb") as f:
+        st.download_button("Baixar Relatório PDF", f, "BJJ_Report.pdf")
